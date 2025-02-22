@@ -7,8 +7,13 @@
 
 import UIKit
 
-class ViewController: UIViewController {
-
+class MainVC: UIViewController {
+    
+    @IBOutlet var addTodoBtn: UIButton!
+    
+    @IBOutlet var deleteSelectTodo: UIButton!
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
