@@ -63,7 +63,7 @@ extension TodosAPI {
                     // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
                   let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: jsonData)
                   let todos = listResponse.data
-                    print("todosResponse: \(todos)")
+//                    print("todosResponse: \(String(describing: todos))")
                     
                     // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
                     guard let todos = todos,
@@ -260,9 +260,9 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
-            print("err: \(err)")
+            print("data: \(String(describing: data))")
+            print("urlResponse: \(String(describing: urlResponse))")
+            print("err: \(String(describing: err))")
             
             
             if let error = err {
@@ -342,10 +342,10 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
-            print("err: \(err)")
             
+            print("data: \(String(describing: data))")
+            print("urlResponse: \(String(describing: urlResponse))")
+            print("err: \(String(describing: err))")
             
             if let error = err {
                 return completion(.failure(ApiError.unknown(error)))
@@ -426,9 +426,9 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
-            print("err: \(err)")
+            print("data: \(String(describing: data))")
+            print("urlResponse: \(String(describing: urlResponse))")
+            print("err: \(String(describing: err))")
             
             
             if let error = err {
@@ -502,9 +502,9 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
-            print("err: \(err)")
+            print("data: \(String(describing: data))")
+            print("urlResponse: \(String(describing: urlResponse))")
+            print("err: \(String(describing: err))")
             
             
             if let error = err {
@@ -571,9 +571,9 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
-            print("err: \(err)")
+            print("data: \(String(describing: data))")
+            print("urlResponse: \(String(describing: urlResponse))")
+            print("err: \(String(describing: err))")
             
             
             if let error = err {
@@ -775,7 +775,7 @@ extension TodosAPI {
                 switch result {
                 case .success(let success):
                     continuation.resume(returning: success.data ?? [])
-                case .failure(let _):
+                case .failure( _):
                     continuation.resume(returning: [])
                 }
             })
@@ -846,7 +846,7 @@ extension TodosAPI {
                 switch result {
                 case .success(let success):
                     continuation.resume(returning: success)
-                case .failure(let _):
+                case .failure( _):
                     continuation.resume(returning: nil)
                 }
             })
@@ -955,7 +955,7 @@ extension TodosAPI {
             return Disposables.create()
         }.catch { failure in
             
-            if let apiErr = failure as? ApiError {
+            if failure is ApiError {
                 throw ApiError.unauthorized
             }
             
@@ -978,7 +978,7 @@ extension TodosAPI {
             })
             return Disposables.create()
         }.compactMap{ response in
-            guard let todo = response.data else {
+            guard response.data != nil else {
                 throw ApiError.noContent
             }
             return response.data
@@ -1021,10 +1021,10 @@ extension TodosAPI {
                 promise(result)
             })
         }.mapError({ err in
-            if let urlErr = err as? ApiError {
+//            if err is ApiError {
                 return ApiError.unauthorized
-            }
-            return err
+//            }
+//            return err
         })
         .eraseToAnyPublisher()
     }
@@ -1037,7 +1037,7 @@ extension TodosAPI {
                 switch result {
                 case .success(let data):
                     promise(.success(data.data ?? []))
-                case .failure(let failure):
+                case .failure(_):
                     promise(.success([]))
                 }
             })

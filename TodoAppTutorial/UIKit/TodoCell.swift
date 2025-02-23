@@ -23,7 +23,7 @@ class TodoCell: UITableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        print(#fileID, #function, #line, "- ")
+//        print(#fileID, #function, #line, "- ")
     }
     
     
@@ -45,12 +45,12 @@ class TodoCell: UITableViewCell {
     
     
     @IBAction func onEditBtnClicked(_ sender: UIButton) {
-        print(#fileID, #function, #line, "- <#comment#>")
+//        print(#fileID, #function, #line, "- <#comment#>")
     }
     
     
     @IBAction func onDeleteBtnClicked(_ sender: UIButton) {
-        print(#fileID, #function, #line, "- <#comment#>")
+//        print(#fileID, #function, #line, "- <#comment#>")
     }
     
 }

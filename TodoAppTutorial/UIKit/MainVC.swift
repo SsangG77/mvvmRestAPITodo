@@ -14,6 +14,7 @@ class MainVC: UIViewController {
     
     @IBOutlet weak var myTableView: UITableView!
     
+    @IBOutlet var currentPageLabel: UILabel!
     
     var todos: [Todo] = []
     
@@ -21,24 +22,51 @@ class MainVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(#fileID, #function, #line, "- ")
+//        print(#fileID, #function, #line, "- ")
         self.view.backgroundColor = .systemYellow
         
         self.myTableView.register(TodoCell.uinib, forCellReuseIdentifier: TodoCell.reuseIdentifier)
         self.myTableView.dataSource = self
+        self.myTableView.delegate = self
         
-            self.todosVM.notifyTodosChanged = { todos in
-                self.todos = todos
-                DispatchQueue.main.async {
-                    self.myTableView.reloadData()
+        self.todosVM.notifyTodosChanged = { todos in
+            self.todos = todos
+            DispatchQueue.main.async {
+                self.myTableView.reloadData()
             }
         }
         
-      
-       
+        
+        
+        
+        self.todosVM.notifyCurrentPage = { page in
+            DispatchQueue.main.async {
+                self.currentPageLabel.text = "페이지: \(page)"
+            }
+        }
+        
+        
+        
+    }// viewDidLoad
+}
+
+
+extension MainVC: UITableViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let height = scrollView.contentSize.height
+        let contentYOffset = scrollView.contentOffset.y
+        let distance = scrollView.contentSize.height - contentYOffset
+        
+        if distance < height {
+            print("bottom")
+            self.todosVM.fetchMore()
+            
+        }
         
     }
 }
+
+
 
 extension MainVC : UITableViewDataSource {
     
@@ -56,17 +84,11 @@ extension MainVC : UITableViewDataSource {
         
         cell.updateUI(cellData)
         
-        if indexPath.row == todos.count - 3 {
-                print("load more moooore")
-            }
-        
-        
         return cell
     }
-    
-  
-    
 }
+
+
 
 extension MainVC {
     
@@ -90,15 +112,15 @@ extension MainVC {
 
 
 
-extension MainVC: UITableViewDelegate {
-    func tableView(
-        _ tableView: UITableView,
-        willDisplay cell: UITableViewCell,
-        forRowAt indexPath: IndexPath
-    ) {
-        let isLastCursor = indexPath.row == todos.count - 1
-        guard isLastCursor else { return }
-        print("load more")
-        tableView.reloadData()
-    }
-}
+//extension MainVC: UITableViewDelegate {
+//    func tableView(
+//        _ tableView: UITableView,
+//        willDisplay cell: UITableViewCell,
+//        forRowAt indexPath: IndexPath
+//    ) {
+//        let isLastCursor = indexPath.row == todos.count - 1
+//        guard isLastCursor else { return }
+//        print("load more")
+//        tableView.reloadData()
+//    }
+//}

@@ -15,38 +15,66 @@ class TodosVM {
         }
     }
     
+    var currentPage:Int = 1 {
+        didSet {
+            self.notifyCurrentPage?(currentPage)
+        }
+    }
+    var isLoading = false
+    
+    
+    
+    
+    
     var notifyTodosChanged: (([Todo]) ->Void)? = nil
+    var notifyCurrentPage: ((Int) -> Void)? = nil
     
     
     
     init(){
-        print(#fileID, #function, #line, "- ")
+//        print(#fileID, #function, #line, "- ")
         fetchTodos()
     }// init
     
-    func fetchTodos() {
-        TodosAPI.fetchTodos(completion: { result in
-            switch result {
-            case .success(let response):
-//                guard let fetchedTodos:[Todo] = response.data else {
-//                    print("데이터(할일) 없음")
-//                    return
-//                }
-//                self.todos = fetchedTodos
-                if let fetchedTodos:[Todo] = response.data {
-                    self.todos = fetchedTodos
-                } else {
-                    print("데이터 없다니까 상진")
+    
+    func fetchMore() {
+        fetchTodos(page: currentPage + 1)
+    }
+    
+    
+    func fetchTodos(page: Int = 1) {
+        
+        if isLoading {
+            return
+        }
+        isLoading = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: {
+            TodosAPI.fetchTodos(completion: { result in
+                switch result {
+                case .success(let response):
+                    self.currentPage = page
+                    if let fetchedTodos:[Todo] = response.data {
+                        if page == 1 {
+                            self.todos = fetchedTodos
+                        } else {
+                            self.todos.append(contentsOf: fetchedTodos)
+                        }
+                        
+                    } else {
+                        print("데이터 없다니까 상진")
+                    }
                     
+                case .failure(let fail):
+                    print("failure: \(fail)")
                 }
+                self.isLoading = false
                 
-                
-                
-            case .failure(let fail):
-                print("failure: \(fail)")
-            }
+            })
             
         })
+        
+        
     }
     
     
