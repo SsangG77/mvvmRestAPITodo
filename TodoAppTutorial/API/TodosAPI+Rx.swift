@@ -32,8 +32,8 @@ extension TodosAPI {
         return URLSession.shared.rx
             .response(request: urlRequest)
             .map({ (urlResponse: HTTPURLResponse, data: Data) -> Result<BaseListResponse<Todo>, ApiError> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
@@ -54,7 +54,7 @@ extension TodosAPI {
                     // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
                   let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: data)
                   let todos = listResponse.data
-                    print("todosResponse: \(listResponse)")
+//                    print("todosResponse: \(listResponse)")
                     
                     // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
                     guard let todos = todos,
@@ -92,8 +92,8 @@ extension TodosAPI {
             .debug("Rx 리트라이 --")
             .map({ (urlResponse: HTTPURLResponse, data: Data) -> Data in
                 
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
@@ -149,8 +149,8 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map({ (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
@@ -201,8 +201,8 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseListResponse<Todo> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
@@ -226,7 +226,7 @@ extension TodosAPI {
                     // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
                   let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: data)
                   let todos = listResponse.data
-                    print("todosResponse: \(listResponse)")
+//                    print("todosResponse: \(listResponse)")
                     
                     // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
                     guard let todos = todos,
@@ -277,8 +277,8 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
@@ -347,8 +347,8 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
@@ -419,8 +419,8 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
@@ -484,8 +484,8 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
@@ -542,8 +542,8 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+//                print("data: \(data)")
+//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
                     print("bad status code")
