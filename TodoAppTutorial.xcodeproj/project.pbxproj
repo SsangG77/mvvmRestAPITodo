@@ -10,6 +10,7 @@
 		9104706A2D69FBDB00B10B2D /* StoryBoarded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910470692D69FBDB00B10B2D /* StoryBoarded.swift */; };
 		9104706C2D69FC1600B10B2D /* Nibbed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9104706B2D69FC1600B10B2D /* Nibbed.swift */; };
 		9104706E2D69FC3D00B10B2D /* ReuseIdentifiable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9104706D2D69FC3D00B10B2D /* ReuseIdentifiable.swift */; };
+		910470702D6DFD3700B10B2D /* ErrorResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9104706F2D6DFD3700B10B2D /* ErrorResponse.swift */; };
 		F2381E45292D0D3A00BF06A0 /* TodosAPI+Closure.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2381E44292D0D3A00BF06A0 /* TodosAPI+Closure.swift */; };
 		F28D47BA293F7A720015A842 /* RxCombine in Frameworks */ = {isa = PBXBuildFile; productRef = F28D47B9293F7A720015A842 /* RxCombine */; };
 		F2902044292CEE0100B441A4 /* URLRequest+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2902043292CEE0100B441A4 /* URLRequest+Ext.swift */; };
@@ -43,6 +44,7 @@
 		910470692D69FBDB00B10B2D /* StoryBoarded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryBoarded.swift; sourceTree = "<group>"; };
 		9104706B2D69FC1600B10B2D /* Nibbed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nibbed.swift; sourceTree = "<group>"; };
 		9104706D2D69FC3D00B10B2D /* ReuseIdentifiable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReuseIdentifiable.swift; sourceTree = "<group>"; };
+		9104706F2D6DFD3700B10B2D /* ErrorResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorResponse.swift; sourceTree = "<group>"; };
 		F2381E44292D0D3A00BF06A0 /* TodosAPI+Closure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TodosAPI+Closure.swift"; sourceTree = "<group>"; };
 		F2902043292CEE0100B441A4 /* URLRequest+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URLRequest+Ext.swift"; sourceTree = "<group>"; };
 		F29247982929E74F0083F0B7 /* TodosAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodosAPI.swift; sourceTree = "<group>"; };
@@ -100,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				F292479D2929ECB90083F0B7 /* TodosResponse.swift */,
+				9104706F2D6DFD3700B10B2D /* ErrorResponse.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -279,6 +282,7 @@
 				F292479E2929ECB90083F0B7 /* TodosResponse.swift in Sources */,
 				F2902044292CEE0100B441A4 /* URLRequest+Ext.swift in Sources */,
 				F2C9BF79291BE37A003BC36C /* MainVC.swift in Sources */,
+				910470702D6DFD3700B10B2D /* ErrorResponse.swift in Sources */,
 				9104706E2D69FC3D00B10B2D /* ReuseIdentifiable.swift in Sources */,
 				F2381E45292D0D3A00BF06A0 /* TodosAPI+Closure.swift in Sources */,
 				9104706C2D69FC1600B10B2D /* Nibbed.swift in Sources */,

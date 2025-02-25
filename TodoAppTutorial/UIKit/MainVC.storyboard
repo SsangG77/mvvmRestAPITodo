@@ -76,6 +76,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="addTodoButton" destination="vQr-eO-tiz" id="1ux-KW-DJB"/>
                         <outlet property="currentPageLabel" destination="4XK-Jm-xPe" id="hki-aM-tzI"/>
                         <outlet property="myTableView" destination="Qme-p7-cWA" id="STK-Cx-HQZ"/>
                         <outlet property="searchBar" destination="6Ti-BS-Do9" id="WuT-er-NEU"/>

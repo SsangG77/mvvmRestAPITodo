@@ -282,6 +282,11 @@ extension TodosAPI {
                 return completion(.failure(ApiError.unauthorized))
             case 204:
                 return completion(.failure(ApiError.noContent))
+            case 422:
+                if let data = data,
+                   let errResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                    return completion(.failure(ApiError.enoughLetter(errResponse)))
+                }
                 
             default: print("")
             }

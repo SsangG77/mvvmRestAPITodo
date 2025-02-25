@@ -12,18 +12,22 @@ import SwiftUI
 
 class MainVC: UIViewController {
     
+    //MARK: - outlet
     @IBOutlet weak var myTableView: UITableView!
     @IBOutlet var currentPageLabel: UILabel!
-    
     @IBOutlet var searchBar: UISearchBar!
+    @IBOutlet var addTodoButton: UIButton!
+    
     
     var searchTermInputWorkItem: DispatchWorkItem? = nil
     
     
+    //MARK: - view 모음
+    
     lazy var bottomIndicatorView: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .medium)
         indicator.startAnimating()
-        indicator.frame(forAlignmentRect: CGRect(x: 0, y: 0, width: self.myTableView.bounds.width, height: 50))
+        indicator.frame(forAlignmentRect: CGRect(x: 0, y: 0, width: self.myTableView.bounds.width, height: 100))
         return indicator
     }()
     
@@ -66,14 +70,35 @@ class MainVC: UIViewController {
     }()
     
     
+    //할일 추가 알림창
+    lazy var addTodoAlert: UIAlertController = {
+        let alert = UIAlertController(title: "할일 추가", message: "할일을 입력해주세요.", preferredStyle: .alert)
+        alert.addTextField { (textField) in
+            textField.placeholder = "할일 추가"
+        }
+        alert.addAction(UIAlertAction(title: "닫기", style: .destructive))
+        alert.addAction(UIAlertAction(title: "확인", style: .default, handler: { (_) in
+            if let txt = alert.textFields?.first?.text {
+                self.todosVM.todoText = txt
+            }
+        }))
+        return alert
+    }()
+    
+    //MARK: - sangjin 알림 추가 에러 알림창
+    lazy var addTodoAlertError: UIAlertController = {
+        let alert = UIAlertController(title: "할일 추가 오류", message: "할일이 추가되지 않았습니다.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .cancel))
+        
+        return alert
+    }()
+    
     
     
     
     //MARK: - sangjin
     //검색결과 변수
     var notFoundSearchResult: Bool = false
-    
-    
     
     var todos: [Todo] = []
 
@@ -95,13 +120,16 @@ class MainVC: UIViewController {
         self.searchBar.searchTextField.addTarget(self, action: #selector(searchTermChanged(_:)), for: .editingChanged)
         
         
+        self.addTodoButton.addTarget(self, action: #selector(appearAddTodoAlert(_:)), for: .touchUpInside)
+        
+        
         
         self.todosVM.notifyIsLoading = { isLoading in
             DispatchQueue.main.async {
                 if isLoading {
                         self.myTableView.tableFooterView = self.bottomIndicatorView
                 } else {
-                    self.myTableView.tableFooterView = nil
+                    self.myTableView.tableFooterView = self.lastPageView
                 }
             }
         }
@@ -140,17 +168,39 @@ class MainVC: UIViewController {
         }
         
         
+        //MARK: - sangjin 서버로부터 에러가 응답되었을때 실행할 클로저
+        self.todosVM.addTodoError = {
+            DispatchQueue.main.async {
+                self.present(self.addTodoAlertError, animated: true)
+            }
+        }
+        
+        
+        
+        
+        self.todosVM.addTodoSuccess = {
+            DispatchQueue.main.async {
+                self.myTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+            }
+        }
+        
+        
+        
+        
+        
         
     }// viewDidLoad
 }
 
 
-/// 액션 설정들
+//MARK: - extention 액션 설정들
 extension MainVC {
     @objc fileprivate func refresh(_ sender:UIRefreshControl) {
         self.todosVM.fetchRefresh()
     }
     
+    
+    //검색창에 입력할때마다 호출됨.
     @objc func searchTermChanged(_ sender: UITextField) {
         
         //검색어를 입력할때마다 기존 작업을 취소
@@ -169,11 +219,20 @@ extension MainVC {
         //작업 재실행
         self.searchTermInputWorkItem = dispatchWorkItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7, execute: dispatchWorkItem)
+    }// - searchTermChanged
+    
+    
+    // 할일 추가 알림창 띄우기
+    @objc func appearAddTodoAlert(_ sender:UIButton) {
+        self.present(addTodoAlert, animated: true)
     }
+    
+    
     
 }
 
 
+//MARK: - extention TableView 스크롤 설정
 extension MainVC: UITableViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let height = scrollView.contentSize.height

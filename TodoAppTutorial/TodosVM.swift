@@ -40,7 +40,7 @@ class TodosVM {
     
     var notifyRefresh: (() -> Void)? = nil
     
-    //MARK: - sangjin 검색 결과 유무 변수
+    // 검색 결과 유무 변수
     var notifyNotFoundSearchResult: ((Bool) -> Void)? = nil
     
     
@@ -56,12 +56,23 @@ class TodosVM {
             }
         }
     }
+
+    
+    //MARK: - sangjin 할일 추가 변수
+    var todoText: String = "" {
+        didSet {
+            self.addTodo()
+        }
+    }
+    
+    //MARK: - sangjin
+    var addTodoError: (() -> Void)? = nil
+    
+    var addTodoSuccess: (() -> Void)? = nil
     
     
-    //마지막 페인지 확인하기 위한 변수
-    var beforePageCount = 0
-    var afterPageCount = 0
-    
+    //MARK: - error 발생 이벤트
+    var notifyError: ((String) -> Void)? = nil
     
     
     init(){
@@ -69,13 +80,69 @@ class TodosVM {
     }// init
     
     
+    
+    //할일 처리 함수
+    func addTodo() {
+        if todoText.count < 1 {
+            return
+        }
+        
+        //MARK: - sangjin
+        TodosAPI.addATodo(title: self.todoText) { result in
+            switch result {
+            case .success(let response):
+                print("addTodo success: \(response)")
+                self.addTodoSuccess?()
+            case .failure(let fail):
+                print("failure: \(fail)")
+                
+                
+                //MARK: - sangjin
+                self.addTodoError?()
+                
+                
+                //MARK: - 강의
+//                self.handleError(fail)
+                
+            }
+        }
+        
+
+//        TodosAPI.addATodoAndFetchTodos(title: self.todoText, completion: { [weak self] result in
+//            guard let self = self else { return }
+//            switch result {
+//            case .success(let response):
+//                self.isLoading = false
+//                
+//                if let fetchedTodos: [Todo] = response.data
+////                    , let pageInfo: Meta = response.meta
+//                {
+//                    self.todos = fetchedTodos
+//                }
+//            case .failure(let fail):
+//                self.isLoading = false
+//            }
+//        })
+    }
+  
+    
+        
+        
+    
+    
+    
+} //TodosVM
+
+
+//search 관련 함수
+extension TodosVM {
+    
     func searchTodos(searchTerm: String, page: Int = 1) {
         
         if searchTerm.count < 0 {
             print("검색어가 없습니다.")
             return
         }
-        
         
         if isLoading {
             return
@@ -114,6 +181,7 @@ class TodosVM {
                 //MARK: - sangjin
                 if self.todos.isEmpty && searchTerm.count > 0 {
                     print(#file, #function, #line, "- 검색 결과가 없습니다. 차상진")
+                    self.todos = []
                     self.notifyNotFoundSearchResult?(true)
                 } else {
                     self.notifyNotFoundSearchResult?(false)
@@ -125,9 +193,12 @@ class TodosVM {
             })
             
         })
-        
-        
-    }
+    } // searchTodos
+}
+
+
+//fetch 관련
+extension TodosVM {
     
     func fetchRefresh() {
         fetchTodos(page: 1)
@@ -175,13 +246,14 @@ class TodosVM {
             })
             
         })
-        
-        
     }
     
     
-    
-    
+}
+
+
+//handleError
+extension TodosVM {
     /// API 에러처리
     /// - Parameter err: API 에러
     fileprivate func handleError(_ err: Error) {
@@ -197,12 +269,13 @@ class TodosVM {
             case .unauthorized:
                 print("인증안됨")
             case .decodingError:
-                print("디코딩 에러입니당ㅇㅇ")
+                print("디코딩 에러입니다")
+            case .enoughLetter:
+                print("6자 이상 입력해주세요.")
             default:
                 print("default")
             }
         }
         
     }// handleError
-    
 }
