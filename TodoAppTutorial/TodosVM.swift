@@ -75,6 +75,7 @@ class TodosVM {
     var notifyError: ((String) -> Void)? = nil
     
     
+    
     init(){
         fetchTodos()
     }// init
@@ -123,10 +124,101 @@ class TodosVM {
 //                self.isLoading = false
 //            }
 //        })
-    }
+    }// addTodo()
   
     
+    
+    //MARK: - sangjin delete todo
+//    func deleteTodo(_ cell: Todo?) {
+//        guard let id: Int = cell?.id
+//        else {
+//            print("id, title none")
+//            return
+//        }
+//        guard let cell: Todo = cell else {
+//            print("cell none")
+//            return
+//        }
+//        
+//        TodosAPI.deleteATodo(id: id) { [weak self] result in
+//            guard let self = self else { return }
+//            
+//            switch result {
+//            case .success(let response):
+//                if let cellId = response.data?.id {
+//                    self.todos = self.todos.filter{ $0.id ?? 0 != cellId }
+//                    self.fetchTodos()
+//                }
+//                
+//            case .failure(let error):
+//                print(error)
+//                
+//            }
+//        }
+//    }
+    
+    
+    //할일 삭제
+    func deleteTodo(_ id: Int) {
         
+        if isLoading {
+            return
+        }
+        self.isLoading = true
+        
+        TodosAPI.deleteATodo(id: id, completion: { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let response):
+                self.isLoading = false
+                if let deletedTodo: Todo = response.data,
+                   let id = deletedTodo.id {
+                    self.todos = self.todos.filter{ $0.id ?? 0 != id }
+                }
+                
+                
+            case .failure(let fail):
+                print("fail: \(fail)")
+            }
+        })
+    }
+    
+    
+    //할 일 수정
+    func editTodo(_ id: Int, _ title: String) {
+        print(#file, #function, #line, "- id: \(id) / title: \(title)")
+        
+        if isLoading {
+            return
+        }
+        self.isLoading = true
+        
+        TodosAPI.editTodo(id: id, title: title, completion: { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let response):
+                self.isLoading = false
+                print(#file, #function, #line, response)
+                
+                if let editTodo = response.data,
+                   let editTodoId = response.data?.id,
+                   let editedIndex = self.todos.firstIndex(where: { $0.id ?? 0 == editTodoId})
+                {
+                    self.todos[editedIndex] = editTodo
+                }
+                
+                
+                
+            case .failure(let fail):
+                print(fail)
+                self.isLoading = false
+            }
+            
+        })
+    }
+    
         
     
     

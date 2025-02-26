@@ -483,10 +483,12 @@ extension TodosAPI {
     ///   - title: 타이틀
     ///   - isDone: 완료여부
     ///   - completion: 응답결과
-    static func editTodo(id: Int,
-                             title: String,
-                             isDone: Bool = false,
-                             completion: @escaping (Result<BaseResponse<Todo>, ApiError>) -> Void){
+    static func editTodo(
+        id: Int,
+        title: String,
+        isDone: Bool = false,
+        completion: @escaping (Result<BaseResponse<Todo>, ApiError>) -> Void
+    ) {
         
         // 1. urlRequest 를 만든다
         

@@ -57,6 +57,9 @@
                     </stackView>
                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="729-4D-Shb">
                         <rect key="frame" x="334" y="57" width="51" height="31"/>
+                        <connections>
+                            <action selector="onSwitchValueChanged:" destination="CpI-LO-w6L" eventType="valueChanged" id="w2z-DV-f5X"/>
+                        </connections>
                     </switch>
                 </subviews>
                 <constraints>
