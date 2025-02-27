@@ -13,10 +13,12 @@ import SwiftUI
 class MainVC: UIViewController {
     
     //MARK: - outlet
-    @IBOutlet weak var myTableView:         UITableView!
-    @IBOutlet var      currentPageLabel:    UILabel!
-    @IBOutlet var      searchBar:           UISearchBar!
-    @IBOutlet var      addTodoButton:       UIButton!
+    @IBOutlet weak var myTableView:                 UITableView!
+    @IBOutlet var      currentPageLabel:            UILabel!
+    @IBOutlet var      searchBar:                   UISearchBar!
+    @IBOutlet var      addTodoButton:               UIButton!
+    @IBOutlet var      selectedTodosDeleteButton:   UIButton!
+    @IBOutlet var      selectedTodos:               UILabel!
     
     
     var searchTermInputWorkItem: DispatchWorkItem? = nil
@@ -53,12 +55,10 @@ class MainVC: UIViewController {
     var notFoundSearchResult: Bool = false
     
     var todos: [Todo] = []
-
     var todosVM = TodosVM()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        print(#fileID, #function, #line, "- ")
         self.view.backgroundColor = .systemYellow
         
         self.myTableView.register(TodoCell.uinib, forCellReuseIdentifier: TodoCell.reuseIdentifier)
@@ -73,6 +73,9 @@ class MainVC: UIViewController {
         
         
         self.addTodoButton.addTarget(self, action: #selector(appearAddTodoAlert(_:)), for: .touchUpInside)
+        
+        self.selectedTodosDeleteButton.addTarget(self, action: #selector(deleteTodosAction(_:)), for: .touchUpInside)
+        
         
         
         
@@ -130,6 +133,16 @@ class MainVC: UIViewController {
         self.todosVM.addTodoSuccess = {
             DispatchQueue.main.async {
                 self.myTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
+            }
+        }
+        
+        self.todosVM.notifySelectedTodosChanged = { [weak self] selectedTodos in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                
+                
+                let selectedTodosString = selectedTodos.map{ "\($0)" }.joined(separator: ", ")
+                self.selectedTodos.text = "선택된 할일들: [\(selectedTodosString)]"
             }
         }
         
@@ -300,6 +313,10 @@ extension MainVC {
         self.present(addTodoAlert, animated: true)
     }
     
+    @objc func deleteTodosAction(_ sender: UIButton) {
+        self.todosVM.deleteTodos()
+    }
+    
     
     
 }
@@ -337,7 +354,7 @@ extension MainVC : UITableViewDataSource {
         
         let cellData = self.todos[indexPath.row]
         
-        cell.updateUI(cellData)
+        cell.updateUI(cellData, self.todosVM.selectedTodosId)
         
         cell.deletedActionEvent = {
             let alert = self.getDeleteTodoAlert($0)
@@ -352,7 +369,12 @@ extension MainVC : UITableViewDataSource {
         //MARK: - sangjin delete todo
 //           cell.parentVC = self
         
-           return cell
+        
+        cell.selectedActionEvent = { id, isOn in
+            self.todosVM.handleTodoSelection(id, isOn)
+        }
+        
+        
         
         
         return cell

@@ -30,6 +30,8 @@ class TodoCell: UITableViewCell {
     
     var editActionEvent: ((Int, String) -> Void)? = nil
     
+    var selectedActionEvent: ((Int, Bool) -> Void)? = nil
+    
     
     
     //MARK: - sangjin delete todo
@@ -47,16 +49,17 @@ class TodoCell: UITableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-//        print(#fileID, #function, #line, "- ")
     }
     
     
     ///셀 데이터 적용
-    func updateUI(_ cellData: Todo) {
+    func updateUI(_ cellData: Todo, _ selectedTodoIds: Set<Int>) {
         
         self.cellData = cellData
         
-        guard let id: Int = cellData.id, let title: String = cellData.title
+        guard
+            let id: Int = cellData.id,
+            let title: String = cellData.title
         else {
             print("id, title none")
             return
@@ -64,6 +67,7 @@ class TodoCell: UITableViewCell {
         
         self.titleLabel.text = "아이디: \(id)"
         self.contentLabel.text = "Title: \(title)"
+        self.selectionSwitch.isOn = selectedTodoIds.contains(id)
         
     }
     
@@ -93,8 +97,9 @@ class TodoCell: UITableViewCell {
   
     @IBAction func onSwitchValueChanged(_ sender: UISwitch) {
         guard let id = cellData?.id else { return }
-        sender.isOn ? print("on") : print("off")
-        print(#file, #function, #line, "switch value changed")
+        
+        self.selectedActionEvent?(id, sender.isOn)
+        
     }
     
    

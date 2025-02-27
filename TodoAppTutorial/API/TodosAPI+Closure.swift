@@ -664,7 +664,7 @@ extension TodosAPI {
     ///   - selectedTodoIds: 선택된 할일 아이디들
     ///   - completion: 실제 삭제가 완료된 아이디들
     static func deleteSelectedTodos(selectedTodoIds: [Int],
-                                    completion: @escaping ([Int]) -> Void){
+                                    completion: @escaping ([Int]) -> Void) {
         
         let group = DispatchGroup()
         

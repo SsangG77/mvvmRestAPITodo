@@ -15,17 +15,12 @@ class TodosVM {
             self.notifyTodosChanged?(todos)
         }
     }
-    //데이터들이 변경되었을 때 호출됨
-    var notifyTodosChanged: (([Todo]) ->Void)? = nil
-    
     //현재 페이지 값
     var currentPage:Int = 1 {
         didSet {
             self.notifyCurrentPage?(currentPage)
         }
     }
-    //페이지 값이 변경될 때 호출됨
-    var notifyCurrentPage: ((Int) -> Void)? = nil
     
     //데이터를 불러오는 중인지 아닌지
     var isLoading = false {
@@ -33,16 +28,6 @@ class TodosVM {
             self.notifyIsLoading?(isLoading)
         }
     }
-    //데이터를 불러오거나 끝났을 때 호출됨
-    var notifyIsLoading: ((Bool) -> Void)? = nil
-    
-    
-    
-    var notifyRefresh: (() -> Void)? = nil
-    
-    // 검색 결과 유무 변수
-    var notifyNotFoundSearchResult: ((Bool) -> Void)? = nil
-    
     
     //search word
     var searchTerm: String = "" {
@@ -56,7 +41,6 @@ class TodosVM {
             }
         }
     }
-
     
     //MARK: - sangjin 할일 추가 변수
     var todoText: String = "" {
@@ -64,6 +48,32 @@ class TodosVM {
             self.addTodo()
         }
     }
+    
+    var selectedTodosId: Set<Int> = [] {
+        didSet {
+            self.notifySelectedTodosChanged?(selectedTodosId)
+        }
+    }
+    
+    //데이터들이 변경되었을 때 호출됨
+    var notifyTodosChanged: (([Todo]) ->Void)? = nil
+    
+    //페이지 값이 변경될 때 호출됨
+    var notifyCurrentPage: ((Int) -> Void)? = nil
+    
+    //데이터를 불러오거나 끝났을 때 호출됨
+    var notifyIsLoading: ((Bool) -> Void)? = nil
+    
+    
+    var notifyRefresh: (() -> Void)? = nil
+    
+    // 검색 결과 유무 변수
+    var notifyNotFoundSearchResult: ((Bool) -> Void)? = nil
+    
+    
+    // selectedTodosId가 변경될 때 호출
+    var notifySelectedTodosChanged: ((Set<Int>) -> Void)? = nil
+
     
     //MARK: - sangjin
     var addTodoError: (() -> Void)? = nil
@@ -73,6 +83,10 @@ class TodosVM {
     
     //MARK: - error 발생 이벤트
     var notifyError: ((String) -> Void)? = nil
+    
+    
+    
+    
     
     
     
@@ -185,6 +199,31 @@ class TodosVM {
     }
     
     
+    
+    //선택된 할일들 삭제
+    func deleteTodos() {
+        
+        if self.selectedTodosId.isEmpty {
+            print(#file, #function, #line, "선택된 할 일이 없습니다.")
+            return
+        }
+        
+        if isLoading {
+            return
+        }
+        self.isLoading = true
+        
+        TodosAPI.deleteSelectedTodos(selectedTodoIds: Array(self.selectedTodosId), completion: { [weak self] deletedIds in
+            guard let self = self else { return }
+            
+            self.todos = self.todos.filter { !deletedIds.contains($0.id ?? 0) }
+            self.selectedTodosId = selectedTodosId.filter { !deletedIds.contains($0) }
+            
+            self.isLoading = false
+        })
+    }
+    
+    
     //할 일 수정
     func editTodo(_ id: Int, _ title: String) {
         print(#file, #function, #line, "- id: \(id) / title: \(title)")
@@ -219,7 +258,16 @@ class TodosVM {
         })
     }
     
+    
+    func handleTodoSelection(_ id:Int, _ isOn: Bool) {
+        if isOn { // on 일때
+            self.selectedTodosId.insert(id)
+        } else { // off 일때
+            self.selectedTodosId.remove(id)
+        }
+    }
         
+    
     
     
     
@@ -312,7 +360,7 @@ extension TodosVM {
         isLoading = true
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: {
-            TodosAPI.fetchTodos(completion: { result in
+            TodosAPI.fetchTodos(page: page, completion: { result in
                 switch result {
                 case .success(let response):
                     self.currentPage = page
