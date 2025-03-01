@@ -32,18 +32,18 @@ extension TodosAPI {
         return URLSession.shared.rx
             .response(request: urlRequest)
             .map({ (urlResponse: HTTPURLResponse, data: Data) -> Result<BaseListResponse<Todo>, ApiError> in
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
+
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                   
                     return .failure(ApiError.unknown(nil))
                 }
                 
                 switch httpResponse.statusCode {
                 case 401:
                     return .failure(ApiError.unauthorized)
-                default: print("default")
+                default:
+                    print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -54,7 +54,7 @@ extension TodosAPI {
                     // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
                   let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: data)
                   let todos = listResponse.data
-//                    print("todosResponse: \(listResponse)")
+//
                     
                     // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
                     guard let todos = todos,
@@ -92,18 +92,16 @@ extension TodosAPI {
             .debug("Rx 리트라이 --")
             .map({ (urlResponse: HTTPURLResponse, data: Data) -> Data in
                 
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                  
                     throw ApiError.unknown(nil)
                 }
                 
                 switch httpResponse.statusCode {
                 case 401:
                     throw ApiError.unauthorized
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -149,11 +147,10 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map({ (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
+
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -163,7 +160,7 @@ extension TodosAPI {
                 case 204:
                     throw ApiError.noContent
                     
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -184,7 +181,7 @@ extension TodosAPI {
     }
     
     /// 할 일 검색하기
-    static func searchTodosWithObservable(searchTerm: String, page: Int = 1) -> Observable<BaseListResponse<Todo>>{
+    static func searchTodosWithObservable(searchTerm: String, page: Int = 1) -> Observable<BaseListResponse<Todo>> {
         
         // 1. urlRequest 를 만든다
         let requestUrl = URL(baseUrl: baseURL + "/todos/search", queryItems: ["query" : searchTerm,
@@ -201,11 +198,10 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseListResponse<Todo> in
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
+
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -214,7 +210,7 @@ extension TodosAPI {
                     throw ApiError.unauthorized
                 case 204:
                     throw ApiError.noContent
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -226,7 +222,7 @@ extension TodosAPI {
                     // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
                   let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: data)
                   let todos = listResponse.data
-//                    print("todosResponse: \(listResponse)")
+
                     
                     // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
                     guard let todos = todos,
@@ -267,7 +263,7 @@ extension TodosAPI {
             MultipartForm.Part(name: "is_done", value: "\(isDone)")
         ])
         
-        print("form.contentType : \(form.contentType)")
+        
         
         urlRequest.addValue(form.contentType, forHTTPHeaderField: "Content-Type")
         
@@ -277,11 +273,10 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
+
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -290,7 +285,7 @@ extension TodosAPI {
                     throw ApiError.unauthorized
                 case 204:
                     throw ApiError.noContent
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -347,11 +342,10 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
+
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -360,7 +354,7 @@ extension TodosAPI {
                     throw ApiError.unauthorized
                 case 204:
                     throw ApiError.noContent
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -419,11 +413,10 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
+
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -432,7 +425,7 @@ extension TodosAPI {
                     throw ApiError.unauthorized
                 case 204:
                     throw ApiError.noContent
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -484,11 +477,10 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
+
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -497,7 +489,7 @@ extension TodosAPI {
                     throw ApiError.unauthorized
                 case 204:
                     throw ApiError.noContent
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -523,7 +515,7 @@ extension TodosAPI {
     ///   - completion: 응답결과
     static func deleteATodoWithObservable(id: Int) -> Observable<BaseResponse<Todo>>{
         
-        print(#fileID, #function, #line, "- deleteATodo 호출됨 / id: \(id)")
+        
         
         // 1. urlRequest 를 만든다
         
@@ -542,11 +534,10 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.rx.response(request: urlRequest)
             .map { (urlResponse: HTTPURLResponse, data: Data) -> BaseResponse<Todo> in
-//                print("data: \(data)")
-//                print("urlResponse: \(urlResponse)")
+
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -555,7 +546,7 @@ extension TodosAPI {
                     throw ApiError.unauthorized
                 case 204:
                     throw ApiError.noContent
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -591,7 +582,7 @@ extension TodosAPI {
                     } // BaseListResponse<Todo>
                     .compactMap{ $0.data } // [Todo]
                     .catch({ err in
-                        print("TodosAPI - catch : err : \(err)")
+                        
                         return Observable.just([])
                     })
                     .share(replay: 1)
@@ -688,16 +679,16 @@ extension TodosAPI {
             
             disposable = fetchTodosWithObservable(page: page)
                 .subscribe(onNext: { response in
-                    print("onNext :\(response)")
+                    
                     continuation.resume(returning: response)
                 }, onError: { err in
-                    print("onError :\(err)")
+                    
                     continuation.resume(throwing: err)
                 }, onCompleted: {
-                    print("onCompleted")
+                    
                     disposable?.dispose()
                 }, onDisposed: {
-                    print("onDisposed")
+                    
                 })
             
         })
@@ -720,7 +711,7 @@ extension ObservableType {
                 
                 observableErr
                     .do(onNext: { err in
-                        print("observableErr - err : \(err) requestCount : \(requestCount)")
+                        
                     })
                     .flatMap { err in
 
@@ -759,7 +750,7 @@ extension ObservableType {
                     .delay(.seconds(delay),scheduler: MainScheduler.instance)
                     .flatMap { _ in
                         requestCount += 1
-                        print("requestCount : \(requestCount)")
+                        
                         return self
                     }
                     .retry(retryCount)

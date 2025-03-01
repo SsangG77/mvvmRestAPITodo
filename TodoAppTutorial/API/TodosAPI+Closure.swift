@@ -33,9 +33,6 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-//            print("data: \(String(describing: data))")
-//            print("urlResponse: \(String(describing: urlResponse))")
-//            print("err: \(String(describing: err))")
           
             
             if let error = err {
@@ -43,7 +40,7 @@ extension TodosAPI {
             }
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 return completion(.failure(ApiError.unknown(nil)))
             }
             
@@ -63,7 +60,7 @@ extension TodosAPI {
                     // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
                   let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: jsonData)
                   let todos = listResponse.data
-//                    print("todosResponse: \(String(describing: todos))")
+
                     
                     // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
                     guard let todos = todos,
@@ -101,18 +98,14 @@ extension TodosAPI {
         // 2. urlSession 으로 API를 호출한다
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
-            
-//            print("data: \(String(describing: data))")
-//            print("urlResponse: \(String(describing: urlResponse))")
-//            print("err: \(String(describing: err))")
-            
+        
             
             if let error = err {
                 return completion(.failure(ApiError.unknown(error)))
             }
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 return completion(.failure(ApiError.unknown(nil)))
             }
             
@@ -177,9 +170,6 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-//            print("data: \(String(describing: data))")
-//            print("urlResponse: \(String(describing: urlResponse))")
-//            print("err: \(String(describing: err))")
             
             
             if let error = err {
@@ -187,7 +177,7 @@ extension TodosAPI {
             }
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 return completion(.failure(ApiError.unknown(nil)))
             }
             
@@ -209,7 +199,7 @@ extension TodosAPI {
                     // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
                   let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: jsonData)
                   let todos = listResponse.data
-//                    print("todosResponse: \(listResponse)")
+//
                     
                     // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
                     guard let todos = todos,
@@ -253,7 +243,7 @@ extension TodosAPI {
             MultipartForm.Part(name: "is_done", value: "\(isDone)")
         ])
         
-        print("form.contentType : \(form.contentType)")
+        
         
         urlRequest.addValue(form.contentType, forHTTPHeaderField: "Content-Type")
         
@@ -263,9 +253,6 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-//            print("data: \(String(describing: data))")
-//            print("urlResponse: \(String(describing: urlResponse))")
-//            print("err: \(String(describing: err))")
             
             
             if let error = err {
@@ -273,7 +260,7 @@ extension TodosAPI {
             }
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 return completion(.failure(ApiError.unknown(nil)))
             }
             
@@ -285,7 +272,7 @@ extension TodosAPI {
             case 422:
                 if let data = data,
                    let errResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
-                    return completion(.failure(ApiError.enoughLetter(errResponse)))
+                    return completion(.failure(ApiError.errResponseFromServer(errResponse)))
                 }
                 
             default: print("")
@@ -351,16 +338,13 @@ extension TodosAPI {
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
             
-//            print("data: \(String(describing: data))")
-//            print("urlResponse: \(String(describing: urlResponse))")
-//            print("err: \(String(describing: err))")
             
             if let error = err {
                 return completion(.failure(ApiError.unknown(error)))
             }
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 return completion(.failure(ApiError.unknown(nil)))
             }
             
@@ -434,9 +418,6 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-//            print("data: \(String(describing: data))")
-//            print("urlResponse: \(String(describing: urlResponse))")
-//            print("err: \(String(describing: err))")
             
             
             if let error = err {
@@ -444,7 +425,7 @@ extension TodosAPI {
             }
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 return completion(.failure(ApiError.unknown(nil)))
             }
             
@@ -512,9 +493,6 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-//            print("data: \(String(describing: data))")
-//            print("urlResponse: \(String(describing: urlResponse))")
-//            print("err: \(String(describing: err))")
             
             
             if let error = err {
@@ -522,7 +500,7 @@ extension TodosAPI {
             }
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 return completion(.failure(ApiError.unknown(nil)))
             }
             
@@ -562,7 +540,7 @@ extension TodosAPI {
     static func deleteATodo(id: Int,
                          completion: @escaping (Result<BaseResponse<Todo>, ApiError>) -> Void){
         
-        print(#fileID, #function, #line, "- deleteATodo 호출됨 / id: \(id)")
+        
         
         // 1. urlRequest 를 만든다
         
@@ -581,17 +559,13 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         URLSession.shared.dataTask(with: urlRequest) { data, urlResponse, err in
             
-//            print("data: \(String(describing: data))")
-//            print("urlResponse: \(String(describing: urlResponse))")
-//            print("err: \(String(describing: err))")
-            
             
             if let error = err {
                 return completion(.failure(ApiError.unknown(error)))
             }
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+           
                 return completion(.failure(ApiError.unknown(nil)))
             }
             
@@ -683,10 +657,10 @@ extension TodosAPI {
                     // 삭제된 아이디를 삭제된 아이디 배열에 넣는다
                     if let todoId = response.data?.id {
                         deletedTodoIds.append(todoId)
-                        print("inner deleteATodo - success: \(todoId)")
+                        
                     }
                 case .failure(let failure):
-                    print("inner deleteATodo - failure: \(failure)")
+                    print("")
                 }
                 group.leave()
             })// 단일 삭제 API 호출
@@ -695,7 +669,7 @@ extension TodosAPI {
         // Configure a completion callback
         group.notify(queue: .main) {
             // All requests completed
-            print("모든 api 완료 됨")
+          
             completion(deletedTodoIds)
         }
     }
@@ -732,11 +706,11 @@ extension TodosAPI {
                     // 가져온 할일을 가져온 할일 배열에 넣는다
                     if let todo = response.data {
                         fetchedTodos.append(todo)
-                        print("inner fetchATodo - success: \(todo)")
+                  
                     }
                 case .failure(let failure):
                     apiErrors.append(failure)
-                    print("inner fetchATodo - failure: \(failure)")
+                  
                 }
                 group.leave()
             })// 단일 할일 조회 API 호출
@@ -745,7 +719,7 @@ extension TodosAPI {
         // Configure a completion callback
         group.notify(queue: .main) {
             // All requests completed
-            print("모든 api 완료 됨")
+            
             
             // 만약 에러가 있다면 에러 올려주기
             if !apiErrors.isEmpty {

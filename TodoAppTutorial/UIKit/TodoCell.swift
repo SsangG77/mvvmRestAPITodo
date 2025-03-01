@@ -17,92 +17,60 @@ class TodoCell: UITableViewCell {
     
     @IBOutlet weak var selectionSwitch: UISwitch!
     
-    //테이블뷰가 있는 뷰 컨트롤러
-    var parentVC: UIViewController!
-    
-    
     var cellData : Todo? = nil
     
-//    lazy var todosVM: TodosVM = TodosVM()
+    // 삭제액션
+    var onDeleteActionEvent: ((Int) -> Void)? = nil
     
+    // 수정액션
+    var onEditActionEvent: ((_ id: Int, _ title: String) -> Void)? = nil
     
-    var deletedActionEvent: ((Int) -> Void)? = nil
-    
-    var editActionEvent: ((Int, String) -> Void)? = nil
-    
-    var selectedActionEvent: ((Int, Bool) -> Void)? = nil
-    
-    
-    
-    //MARK: - sangjin delete todo
-    //할일 삭제 알림창
-//    lazy var deleteTodoAlert: UIAlertController = {
-//        let alert = UIAlertController(title: "할일 삭제", message: "할일을 삭제하시겠습니까?", preferredStyle: .alert)
-//        alert.addAction(UIAlertAction(title: "취소", style: .cancel))
-//        alert.addAction(UIAlertAction(title: "삭제", style: .destructive, handler: { (_) in
-//            self.todosVM.deleteTodo(self.cellData)
-//        }))
-//        return alert
-//        
-//    }()
-    
+    // 선택액션
+    var onSelectedActionEvent: ((_ id: Int, _ isOn: Bool) -> Void)? = nil
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        print(#fileID, #function, #line, "- ")
+        selectionSwitch.addTarget(self, action: #selector(onSelectionChanged(_:)), for: .valueChanged)
     }
     
     
-    ///셀 데이터 적용
-    func updateUI(_ cellData: Todo, _ selectedTodoIds: Set<Int>) {
+    /// 쎌 데이터 적용
+    /// - Parameter cellData:
+    func updateUI(_ cellData: Todo, _ selectedTodoIds: Set<Int>){
         
-        self.cellData = cellData
-        
-        guard
-            let id: Int = cellData.id,
-            let title: String = cellData.title
-        else {
-            print("id, title none")
+        guard var id : Int = cellData.id,
+              var title : String = cellData.title else {
+            print("id, title 이 없습니다")
             return
         }
-        
+        self.cellData = cellData
         self.titleLabel.text = "아이디: \(id)"
-        self.contentLabel.text = "Title: \(title)"
+        self.contentLabel.text = title
         self.selectionSwitch.isOn = selectedTodoIds.contains(id)
-        
     }
     
+    @objc fileprivate func onSelectionChanged(_ sender: UISwitch) {
+        print(#fileID, #function, #line, "- sender.isOn: \(sender.isOn)")
+        guard let id = cellData?.id else { return }
+        self.onSelectedActionEvent?(id, sender.isOn)
+    }
     
     @IBAction func onEditBtnClicked(_ sender: UIButton) {
-        print(#fileID, #function, #line, "- edit")
-        guard
-            let id = cellData?.id,
-            let title = cellData?.title
-        else { return }
+        print(#fileID, #function, #line, "- <#comment#>")
         
-        self.editActionEvent?(id, title)
+        guard let id = cellData?.id,
+              let title = cellData?.title else { return }
         
+        self.onEditActionEvent?(id, title)
     }
     
     
     @IBAction func onDeleteBtnClicked(_ sender: UIButton) {
-        
-        //MARK: - sangjin delete todo
-//        parentVC.present(deleteTodoAlert, animated: true, completion: nil)
-        
+        print(#fileID, #function, #line, "- <#comment#>")
         
         guard let id = cellData?.id else { return }
-        self.deletedActionEvent?(id)
+        self.onDeleteActionEvent?(id)
     }
     
-  
-    @IBAction func onSwitchValueChanged(_ sender: UISwitch) {
-        guard let id = cellData?.id else { return }
-        
-        self.selectedActionEvent?(id, sender.isOn)
-        
-    }
-    
-   
-    
-   
 }

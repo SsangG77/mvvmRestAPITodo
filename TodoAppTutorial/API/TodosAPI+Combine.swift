@@ -33,18 +33,17 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .map({ (data: Data, urlResponse: URLResponse) -> Result<BaseListResponse<Todo>, ApiError> in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+                
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     return .failure(ApiError.unknown(nil))
                 }
                 
                 switch httpResponse.statusCode {
                 case 401:
                     return .failure(ApiError.unauthorized)
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -55,7 +54,7 @@ extension TodosAPI {
                     // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
                   let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: data)
                   let todos = listResponse.data
-                    print("todosResponse: \(listResponse)")
+                    
                     
                     // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
                     guard let todos = todos,
@@ -98,18 +97,17 @@ extension TodosAPI {
         // 3. API 호출에 대한 응답을 받는다
         return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap({ (data: Data, urlResponse: URLResponse) -> Data in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+                
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
                 switch httpResponse.statusCode {
                 case 401:
                     throw ApiError.unauthorized
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -165,11 +163,9 @@ extension TodosAPI {
         return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap({ (data: Data, urlResponse: URLResponse) -> Data in
                 
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -179,7 +175,7 @@ extension TodosAPI {
                 case 204:
                     throw ApiError.noContent
                     
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -228,18 +224,17 @@ extension TodosAPI {
         return URLSession.shared
             .dataTaskPublisher(for: urlRequest)
             .tryMap({ (data: Data, urlResponse: URLResponse) -> Data in
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
+                
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
                 switch httpResponse.statusCode {
                 case 401:
                     throw ApiError.unauthorized
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -296,7 +291,7 @@ extension TodosAPI {
             MultipartForm.Part(name: "is_done", value: "\(isDone)")
         ])
         
-        print("form.contentType : \(form.contentType)")
+        
         
         urlRequest.addValue(form.contentType, forHTTPHeaderField: "Content-Type")
         
@@ -307,11 +302,9 @@ extension TodosAPI {
         return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap({ (data: Data, urlResponse: URLResponse) -> Data in
                 
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -321,7 +314,7 @@ extension TodosAPI {
                 case 204:
                     throw ApiError.noContent
                     
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -388,11 +381,9 @@ extension TodosAPI {
         return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap({ (data: Data, urlResponse: URLResponse) -> Data in
                 
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -402,7 +393,7 @@ extension TodosAPI {
                 case 204:
                     throw ApiError.noContent
                     
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -471,11 +462,9 @@ extension TodosAPI {
         return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap({ (data: Data, urlResponse: URLResponse) -> Data in
                 
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -485,7 +474,7 @@ extension TodosAPI {
                 case 204:
                     throw ApiError.noContent
                     
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -547,11 +536,9 @@ extension TodosAPI {
         return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap({ (data: Data, urlResponse: URLResponse) -> Data in
                 
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
                      
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -561,7 +548,7 @@ extension TodosAPI {
                 case 204:
                     throw ApiError.noContent
                     
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -596,7 +583,7 @@ extension TodosAPI {
     ///   - completion: 응답결과
     static func deleteATodoWithPublisher(id: Int) -> AnyPublisher<BaseResponse<Todo>, ApiError>{
         
-        print(#fileID, #function, #line, "- deleteATodo 호출됨 / id: \(id)")
+        
         
         // 1. urlRequest 를 만든다
         
@@ -616,11 +603,8 @@ extension TodosAPI {
         return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap({ (data: Data, urlResponse: URLResponse) -> Data in
                 
-                print("data: \(data)")
-                print("urlResponse: \(urlResponse)")
-                     
                 guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                    print("bad status code")
+                    
                     throw ApiError.unknown(nil)
                 }
                 
@@ -630,7 +614,7 @@ extension TodosAPI {
                 case 204:
                     throw ApiError.noContent
                     
-                default: print("default")
+                default: print("")
                 }
                 
                 if !(200...299).contains(httpResponse.statusCode){
@@ -692,7 +676,7 @@ extension TodosAPI {
                     } // BaseListResponse<Todo>
                     .compactMap{ $0.data } // [Todo]
 //                    .catch({ err in
-//                        print("TodosAPI - catch : err : \(err)")
+
 //                        return Just([]).eraseToAnyPublisher()
 //                    })
                     .replaceError(with: [])
@@ -715,7 +699,7 @@ extension TodosAPI {
                     .switchToLatest()
                     .compactMap{ $0.data } // [Todo]
 //                    .catch({ err in
-//                        print("TodosAPI - catch : err : \(err)")
+
 //                        return Just([]).eraseToAnyPublisher()
 //                    })
                     .replaceError(with: [])
@@ -851,14 +835,14 @@ extension TodosAPI {
                 .sink(receiveCompletion: { completion in
                     switch completion {
                     case .finished:
-                        print("finished")
+                        print("")
                     case .failure(let failure):
-                        print("failure : \(failure)")
+                        
                         continuation.resume(throwing: failure)
                     }
                     cancellable?.cancel()
                 }, receiveValue: { response in
-                    print("receiveValue : \(response)")
+                    
                     continuation.resume(returning: response)
                 })
         })

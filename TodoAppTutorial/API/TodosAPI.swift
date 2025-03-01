@@ -25,7 +25,7 @@ enum TodosAPI {
         case unauthorized
         case notAllowedUrl
         case badStatus(code: Int)
-        case enoughLetter(_ errRes: ErrorResponse)
+        case errResponseFromServer(_ errResponse: ErrorResponse?)
         case unknown(_ err: Error?)
         
         var info : String {
@@ -36,8 +36,8 @@ enum TodosAPI {
             case .unauthorized :        return "인증되지 않은 사용자 입니다."
             case .notAllowedUrl :       return "올바른 URL 형식이 아닙니다."
             case let .badStatus(code):  return "에러 상태코드 : \(code)"
-            case .enoughLetter(let errRes):         return errRes.message ?? ""
-            case .unknown(let err):     return "알 수 없는 에러입니다 \n \(String(describing: err))"
+            case .errResponseFromServer(let errResponse): return errResponse?.message ?? ""
+            case .unknown(let err):     return "알 수 없는 에러입니다 \n \(err)"
             }
         }
     }

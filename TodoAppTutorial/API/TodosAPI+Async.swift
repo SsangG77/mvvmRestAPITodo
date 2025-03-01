@@ -36,18 +36,15 @@ extension TodosAPI {
             
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
-                 
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 return .failure(ApiError.unknown(nil))
             }
             
             switch httpResponse.statusCode {
             case 401:
                 return .failure(ApiError.unauthorized)
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -57,7 +54,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: data)
             let todos = listResponse.data
-            print("todosResponse: \(listResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let todos = todos,
@@ -101,11 +98,9 @@ extension TodosAPI {
         do {
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 
                 throw ApiError.unknown(nil)
             }
@@ -114,7 +109,7 @@ extension TodosAPI {
             case 401:
                 throw ApiError.unauthorized
                 
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -124,7 +119,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: data)
             let todos = listResponse.data
-            print("todosResponse: \(listResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let todos = todos,
@@ -175,11 +170,9 @@ extension TodosAPI {
         do {
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 
                 throw ApiError.unknown(nil)
             }
@@ -188,7 +181,7 @@ extension TodosAPI {
             case 401:
                 throw ApiError.unauthorized
                 
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -198,7 +191,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let baseResponse = try JSONDecoder().decode(BaseResponse<Todo>.self, from: data)
             let aTodo = baseResponse.data
-            print("baseResponse: \(baseResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let _ = aTodo else {
@@ -242,11 +235,9 @@ extension TodosAPI {
         do {
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 
                 throw ApiError.unknown(nil)
             }
@@ -255,7 +246,7 @@ extension TodosAPI {
             case 401:
                 throw ApiError.unauthorized
                 
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -265,7 +256,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let listResponse = try JSONDecoder().decode(BaseListResponse<Todo>.self, from: data)
             let todos = listResponse.data
-            print("todosResponse: \(listResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let todos = todos,
@@ -315,7 +306,7 @@ extension TodosAPI {
             MultipartForm.Part(name: "is_done", value: "\(isDone)")
         ])
         
-        print("form.contentType : \(form.contentType)")
+        
         
         urlRequest.addValue(form.contentType, forHTTPHeaderField: "Content-Type")
         
@@ -326,11 +317,9 @@ extension TodosAPI {
         do {
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 
                 throw ApiError.unknown(nil)
             }
@@ -339,7 +328,7 @@ extension TodosAPI {
             case 401:
                 throw ApiError.unauthorized
                 
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -349,7 +338,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let baseResponse = try JSONDecoder().decode(BaseResponse<Todo>.self, from: data)
             let aTodo = baseResponse.data
-            print("baseResponse: \(baseResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let _ = aTodo else {
@@ -410,11 +399,10 @@ extension TodosAPI {
         do {
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
+            
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 
                 throw ApiError.unknown(nil)
             }
@@ -423,7 +411,7 @@ extension TodosAPI {
             case 401:
                 throw ApiError.unauthorized
                 
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -433,7 +421,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let baseResponse = try JSONDecoder().decode(BaseResponse<Todo>.self, from: data)
             let aTodo = baseResponse.data
-            print("baseResponse: \(baseResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let _ = aTodo else {
@@ -496,11 +484,9 @@ extension TodosAPI {
         do {
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 
                 throw ApiError.unknown(nil)
             }
@@ -509,7 +495,7 @@ extension TodosAPI {
             case 401:
                 throw ApiError.unauthorized
                 
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -519,7 +505,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let baseResponse = try JSONDecoder().decode(BaseResponse<Todo>.self, from: data)
             let aTodo = baseResponse.data
-            print("baseResponse: \(baseResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let _ = aTodo else {
@@ -575,11 +561,9 @@ extension TodosAPI {
         do {
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 
                 throw ApiError.unknown(nil)
             }
@@ -588,7 +572,7 @@ extension TodosAPI {
             case 401:
                 throw ApiError.unauthorized
                 
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -598,7 +582,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let baseResponse = try JSONDecoder().decode(BaseResponse<Todo>.self, from: data)
             let aTodo = baseResponse.data
-            print("baseResponse: \(baseResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let _ = aTodo else {
@@ -627,7 +611,7 @@ extension TodosAPI {
     ///   - completion: 응답결과
     static func deleteATodoWithAsync(id: Int) async throws -> BaseResponse<Todo>{
         
-        print(#fileID, #function, #line, "- deleteATodo 호출됨 / id: \(id)")
+        
         
         // 1. urlRequest 를 만든다
         
@@ -647,11 +631,9 @@ extension TodosAPI {
         do {
             let (data, urlResponse) = try await URLSession.shared.data(for: urlRequest)
             
-            print("data: \(data)")
-            print("urlResponse: \(urlResponse)")
                  
             guard let httpResponse = urlResponse as? HTTPURLResponse else {
-                print("bad status code")
+                
                 
                 throw ApiError.unknown(nil)
             }
@@ -661,7 +643,7 @@ extension TodosAPI {
                 throw ApiError.unauthorized
             case 204:
                 throw ApiError.noContent
-            default: print("default")
+            default: print("")
             }
             
             if !(200...299).contains(httpResponse.statusCode){
@@ -671,7 +653,7 @@ extension TodosAPI {
             // JSON -> Struct 로 변경 즉 디코딩 즉 데이터 파싱
             let baseResponse = try JSONDecoder().decode(BaseResponse<Todo>.self, from: data)
             let aTodo = baseResponse.data
-            print("baseResponse: \(baseResponse)")
+            
             
             // 상태 코드는 200인데 파싱한 데이터에 따라서 에러처리
             guard let _ = aTodo else {
@@ -1076,11 +1058,11 @@ extension Task where Failure == Error {
                     
                     // 성공시 리턴
                     let result = try await asyncWork()
-                    print("retry - result: \(result)")
+                    
                     return result
                     
                 } catch {
-                    print("retry - error: \(error)")
+                    
                     
                     // 특정 조건일 때
                     guard (when?(error) ?? true) else {

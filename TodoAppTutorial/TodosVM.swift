@@ -7,33 +7,29 @@
 
 import Foundation
 
-class TodosVM {
+class TodosVM_Closure {
     
-    //API를 통해 불러온 데이터들
-    var todos:[Todo] = [] {
+    // 가공된 최종 데이터
+    var todos : [Todo] = [] {
         didSet {
+            print(#fileID, #function, #line, "- ")
             self.notifyTodosChanged?(todos)
         }
     }
-    //현재 페이지 값
-    var currentPage:Int = 1 {
+    
+    // 선택된 할일들
+    var selectedTodoIds: Set<Int> = [] {
         didSet {
-            self.notifyCurrentPage?(currentPage)
+            print(#fileID, #function, #line, "- selectedTodoIds: \(selectedTodoIds)")
+            self.notifySelectedTodoIdsChanged?(Array(selectedTodoIds))
         }
     }
     
-    //데이터를 불러오는 중인지 아닌지
-    var isLoading = false {
-        didSet {
-            self.notifyIsLoading?(isLoading)
-        }
-    }
     
-    //search word
+    /// 검색어
     var searchTerm: String = "" {
         didSet {
-            
-            //MARK: - sangjin change
+            print(#fileID, #function, #line, "- searchTerm: \(searchTerm)")
             if searchTerm.count > 0 {
                 self.searchTodos(searchTerm: searchTerm)
             } else {
@@ -42,380 +38,365 @@ class TodosVM {
         }
     }
     
-    //MARK: - sangjin 할일 추가 변수
-    var todoText: String = "" {
+    var pageInfo : Meta? = nil {
         didSet {
-            self.addTodo()
+            print(#fileID, #function, #line, "- pageInfo: \(pageInfo)")
+            
+            // 다음페이지 있는지 여부 이벤트
+            self.notifyHasNextPage?(pageInfo?.hasNext() ?? true)
+            
+            // 현재 페이지 변경 이벤트
+            self.notifyCurrentPageChanged?(currentPage)
         }
     }
     
-    var selectedTodosId: Set<Int> = [] {
-        didSet {
-            self.notifySelectedTodosChanged?(selectedTodosId)
+    var currentPage: Int {
+        get {
+            if let pageInfo = self.pageInfo,
+               let currentPage = pageInfo.currentPage {
+                return currentPage
+            } else {
+                return 1
+            }
         }
     }
     
-    //데이터들이 변경되었을 때 호출됨
-    var notifyTodosChanged: (([Todo]) ->Void)? = nil
+    var isLoading : Bool = false {
+        didSet {
+            print(#fileID, #function, #line, "- ")
+            notifyLoadingStateChanged?(isLoading)
+        }
+    }
     
-    //페이지 값이 변경될 때 호출됨
-    var notifyCurrentPage: ((Int) -> Void)? = nil
+    //  선택된 할일들 변경 이벤트
+    var notifySelectedTodoIdsChanged : ((_ selectedIds: [Int]) -> Void)? = nil
     
-    //데이터를 불러오거나 끝났을 때 호출됨
-    var notifyIsLoading: ((Bool) -> Void)? = nil
+    //  에러발생 이벤트
+    var notifyErrorOccured : ((_ errMsg: String) -> Void)? = nil
     
+    //  할일 추가완료 이벤트
+    var notifyTodoAdded : (() -> Void)? = nil
     
-    var notifyRefresh: (() -> Void)? = nil
+    // 다음페이지 있는지  이벤트
+    var notifyHasNextPage : ((_ hasNext: Bool) -> Void)? = nil
     
-    // 검색 결과 유무 변수
-    var notifyNotFoundSearchResult: ((Bool) -> Void)? = nil
+    // 검색결과 없음 여부 이벤트
+    var notifySearchDataNotFound : ((_ noContent: Bool) -> Void)? = nil
     
+    // 리프레시 완료 이벤트
+    var notifyRefreshEnded : (() -> Void)? = nil
     
-    // selectedTodosId가 변경될 때 호출
-    var notifySelectedTodosChanged: ((Set<Int>) -> Void)? = nil
-
+    // 로딩중 여부 변경 이벤트
+    var notifyLoadingStateChanged : ((_ isLoading: Bool) -> Void)? = nil
     
-    //MARK: - sangjin
-    var addTodoError: (() -> Void)? = nil
+    // 데이터 변경 이벤트
+    var notifyTodosChanged : (([Todo]) -> Void)? = nil
     
-    var addTodoSuccess: (() -> Void)? = nil
-    
-    
-    //MARK: - error 발생 이벤트
-    var notifyError: ((String) -> Void)? = nil
-    
-    
-    
-    
+    // 현재페이지 변경 이벤트
+    var notifyCurrentPageChanged : ((Int) -> Void)? = nil
     
     
     
     init(){
+        print(#fileID, #function, #line, "- ")
+        
         fetchTodos()
     }// init
     
     
-    
-    //할일 처리 함수
-    func addTodo() {
-        if todoText.count < 1 {
-            return
+    /// 선택된 할일 처리
+    /// - Parameters:
+    ///   - selectedTodoId:
+    ///   - isOn:
+    func handleTodoSelection(_ selectedTodoId: Int, isOn: Bool){
+        if isOn {
+            self.selectedTodoIds.insert(selectedTodoId)
+        } else {
+            self.selectedTodoIds.remove(selectedTodoId)
         }
-        
-        //MARK: - sangjin
-        TodosAPI.addATodo(title: self.todoText) { result in
-            switch result {
-            case .success(let response):
-                print("addTodo success: \(response)")
-                self.addTodoSuccess?()
-            case .failure(let fail):
-                print("failure: \(fail)")
-                
-                
-                //MARK: - sangjin
-                self.addTodoError?()
-                
-                
-                //MARK: - 강의
-//                self.handleError(fail)
-                
-            }
-        }
-        
-
-//        TodosAPI.addATodoAndFetchTodos(title: self.todoText, completion: { [weak self] result in
-//            guard let self = self else { return }
-//            switch result {
-//            case .success(let response):
-//                self.isLoading = false
-//                
-//                if let fetchedTodos: [Todo] = response.data
-////                    , let pageInfo: Meta = response.meta
-//                {
-//                    self.todos = fetchedTodos
-//                }
-//            case .failure(let fail):
-//                self.isLoading = false
-//            }
-//        })
-    }// addTodo()
-  
-    
-    
-    //MARK: - sangjin delete todo
-//    func deleteTodo(_ cell: Todo?) {
-//        guard let id: Int = cell?.id
-//        else {
-//            print("id, title none")
-//            return
-//        }
-//        guard let cell: Todo = cell else {
-//            print("cell none")
-//            return
-//        }
-//        
-//        TodosAPI.deleteATodo(id: id) { [weak self] result in
-//            guard let self = self else { return }
-//            
-//            switch result {
-//            case .success(let response):
-//                if let cellId = response.data?.id {
-//                    self.todos = self.todos.filter{ $0.id ?? 0 != cellId }
-//                    self.fetchTodos()
-//                }
-//                
-//            case .failure(let error):
-//                print(error)
-//                
-//            }
-//        }
-//    }
-    
-    
-    //할일 삭제
-    func deleteTodo(_ id: Int) {
-        
-        if isLoading {
-            return
-        }
-        self.isLoading = true
-        
-        TodosAPI.deleteATodo(id: id, completion: { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let response):
-                self.isLoading = false
-                if let deletedTodo: Todo = response.data,
-                   let id = deletedTodo.id {
-                    self.todos = self.todos.filter{ $0.id ?? 0 != id }
-                }
-                
-                
-            case .failure(let fail):
-                print("fail: \(fail)")
-            }
-        })
     }
     
     
-    
-    //선택된 할일들 삭제
-    func deleteTodos() {
+    /// 할일 검색하기
+    /// - Parameters:
+    ///   - searchTerm: 검색어
+    ///   - page: 페이지
+    func searchTodos(searchTerm: String, page: Int = 1){
+        print(#fileID, #function, #line, "- <#comment#>")
         
-        if self.selectedTodosId.isEmpty {
-            print(#file, #function, #line, "선택된 할 일이 없습니다.")
+        if searchTerm.count < 1 {
+            print("검색어가 없습니다")
             return
         }
         
         if isLoading {
-            return
-        }
-        self.isLoading = true
-        
-        TodosAPI.deleteSelectedTodos(selectedTodoIds: Array(self.selectedTodosId), completion: { [weak self] deletedIds in
-            guard let self = self else { return }
-            
-            self.todos = self.todos.filter { !deletedIds.contains($0.id ?? 0) }
-            self.selectedTodosId = selectedTodosId.filter { !deletedIds.contains($0) }
-            
-            self.isLoading = false
-        })
-    }
-    
-    
-    //할 일 수정
-    func editTodo(_ id: Int, _ title: String) {
-        print(#file, #function, #line, "- id: \(id) / title: \(title)")
-        
-        if isLoading {
-            return
-        }
-        self.isLoading = true
-        
-        TodosAPI.editTodo(id: id, title: title, completion: { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let response):
-                self.isLoading = false
-                print(#file, #function, #line, response)
-                
-                if let editTodo = response.data,
-                   let editTodoId = response.data?.id,
-                   let editedIndex = self.todos.firstIndex(where: { $0.id ?? 0 == editTodoId})
-                {
-                    self.todos[editedIndex] = editTodo
-                }
-                
-                
-                
-            case .failure(let fail):
-                print(fail)
-                self.isLoading = false
-            }
-            
-        })
-    }
-    
-    
-    func handleTodoSelection(_ id:Int, _ isOn: Bool) {
-        if isOn { // on 일때
-            self.selectedTodosId.insert(id)
-        } else { // off 일때
-            self.selectedTodosId.remove(id)
-        }
-    }
-        
-    
-    
-    
-    
-} //TodosVM
-
-
-//search 관련 함수
-extension TodosVM {
-    
-    func searchTodos(searchTerm: String, page: Int = 1) {
-        
-        if searchTerm.count < 0 {
-            print("검색어가 없습니다.")
+            print("로딩중입니다...")
             return
         }
         
-        if isLoading {
-            return
+        guard pageInfo?.hasNext() ?? true else {
+            return print("다음페이지 없음")
         }
+        
+        self.notifySearchDataNotFound?(false)
+        
+        if page == 1 {
+            self.todos = []
+        }
+        
         isLoading = true
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: {
-            TodosAPI.searchTodos(searchTerm: searchTerm, completion: { result in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7, execute: {
+            // 서비스 로직
+            TodosAPI.searchTodos(searchTerm: searchTerm,
+                                 page: page,
+                                 completion: { [weak self] result in
+                guard let self = self else { return }
                 switch result {
                 case .success(let response):
-                    self.currentPage = page
-                    if let fetchedTodos:[Todo] = response.data {
-                        
-                        if page == 1 {
-                            //MARK: - sangjin
-//                            if fetchedTodos.isEmpty {
-//                                print("검색 결과가 없습니다. 차상진")
-//                            }
-                            
-                            self.todos = fetchedTodos.shuffled()
-                        } else {
-                            self.todos.append(contentsOf: fetchedTodos)
-                        }
-                        
-                    } else {
-                        print("데이터 없다니까 상진")
-                    }
-                    
-                case .failure(let fail):
-                    print("failure: \(fail)")
-                    
-                    //MARK: - sangjin
-                    self.todos = []
-                }
-                
-                //MARK: - sangjin
-                if self.todos.isEmpty && searchTerm.count > 0 {
-                    print(#file, #function, #line, "- 검색 결과가 없습니다. 차상진")
-                    self.todos = []
-                    self.notifyNotFoundSearchResult?(true)
-                } else {
-                    self.notifyNotFoundSearchResult?(false)
-                }
-                
-                self.notifyRefresh?()
-                self.isLoading = false
-                
-            })
-            
-        })
-    } // searchTodos
-}
-
-
-//fetch 관련
-extension TodosVM {
-    
-    func fetchRefresh() {
-        fetchTodos(page: 1)
-    }
-    
-    
-    func fetchMore() {
-        if self.currentPage < 3 {
-            fetchTodos(page: currentPage + 1)
-        }
-    }
-    
-    
-    func fetchTodos(page: Int = 1) {
-        
-        if isLoading {
-            return
-        }
-        isLoading = true
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: {
-            TodosAPI.fetchTodos(page: page, completion: { result in
-                switch result {
-                case .success(let response):
-                    self.currentPage = page
-                    if let fetchedTodos:[Todo] = response.data {
-                        
+                    self.isLoading = false
+                    // 페이지 갱신
+                    if let fetchedTodos : [Todo] = response.data,
+                       let pageInfo : Meta = response.meta{
                         if page == 1 {
                             self.todos = fetchedTodos
                         } else {
                             self.todos.append(contentsOf: fetchedTodos)
-                           
                         }
-                        
-                    } else {
-                        print("데이터 없다니까 상진")
+                        self.pageInfo = pageInfo
                     }
-                    
-                case .failure(let fail):
-                    print("failure: \(fail)")
+                case .failure(let failure):
+                    print("failure: \(failure)")
+                    self.isLoading = false
+                    self.handleError(failure)
                 }
-                self.notifyRefresh?()
-                self.isLoading = false
+                self.notifyRefreshEnded?()
                 
             })
+        })
+    }
+    
+    /// 데이터 리프레시
+    func fetchRefresh(){
+        print(#fileID, #function, #line, "- ")
+        self.fetchTodos(page: 1)
+    }
+    
+    
+    /// 더 가져오기
+    func fetchMore(){
+        print(#fileID, #function, #line, "- ")
+        
+        guard let pageInfo = self.pageInfo,
+              pageInfo.hasNext(),
+              !isLoading else {
+            return print("다음페이지가 없다")
+        }
+        
+        if searchTerm.count > 0 { // 검색어가 있으면
+            self.searchTodos(searchTerm: searchTerm, page: self.currentPage + 1)
+        } else {
+            self.fetchTodos(page: currentPage + 1)
+        }
+    }
+    
+    /// 선택된 할일들 삭제
+    func deleteSeletedTodos() {
+        print(#fileID, #function, #line, "- ")
+        
+        if self.selectedTodoIds.count < 1 {
+            notifyErrorOccured?("선택된 할일들이 없습니다")
+            return
+        }
+        
+        if isLoading {
+            print("로딩중이다")
+            return
+        }
+        
+        self.isLoading = true
+        
+        TodosAPI.deleteSelectedTodos(selectedTodoIds: Array(self.selectedTodoIds),
+                                     completion: { [weak self] deletedTodoIds in
+            guard let self = self else { return }
             
+            // 삭제된 아이템 찾아서 그 녀석만 현재 리스트에서 빼기
+            self.todos = self.todos.filter{ !deletedTodoIds.contains($0.id ?? 0) }
+            
+            self.selectedTodoIds = self.selectedTodoIds.filter{ !deletedTodoIds.contains($0) }
+            
+            self.isLoading = false
+        })
+
+    }
+    
+    /// 단일 할일 삭제
+    /// - Parameter id: 할일 아이디
+    func deleteATodo(_ id: Int) {
+        print(#fileID, #function, #line, "- id: \(id)")
+        
+        if isLoading {
+            print("로딩중이다")
+            return
+        }
+        
+        self.isLoading = true
+        
+        TodosAPI.deleteATodo(id: id, completion: { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let response):
+                self.isLoading = false
+                // 페이지 갱신
+                if let deletedTodo : Todo = response.data,
+                   let deletedTodoId : Int = deletedTodo.id{
+                    
+                    // 삭제된 아이템 찾아서 그 녀석만 현재 리스트에서 빼기
+                    self.todos = self.todos.filter{ $0.id ?? 0 != deletedTodoId }
+                }
+            case .failure(let failure):
+                print("failure: \(failure)")
+                self.isLoading = false
+                self.handleError(failure)
+            }
+        })
+    }
+    
+    /// 할일추가
+    /// - Parameter title: 할일 타이틀
+    func addATodo(_ title: String) {
+        print(#fileID, #function, #line, "- title: \(title)")
+        
+        if isLoading {
+            print("로딩중이다")
+            return
+        }
+        
+        self.isLoading = true
+        
+        TodosAPI.addATodoAndFetchTodos(title: title, completion: { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let response):
+                self.isLoading = false
+                // 페이지 갱신
+                if let fetchedTodos : [Todo] = response.data,
+                   let pageInfo : Meta = response.meta{
+                    self.todos = fetchedTodos
+                    self.pageInfo = pageInfo
+                    self.notifyTodoAdded?()
+                }
+            case .failure(let failure):
+                print("failure: \(failure)")
+                self.isLoading = false
+                self.handleError(failure)
+            }
+        })
+    }
+    
+    /// 할일 수정
+    /// - Parameter title: 할일 타이틀
+    func editATodo(_ id: Int, _ editedTitle: String) {
+        print(#fileID, #function, #line, "- id: \(id), editedTitle: \(editedTitle)")
+        
+        if isLoading {
+            print("로딩중이다")
+            return
+        }
+        
+        self.isLoading = true
+        
+        TodosAPI.editTodo(id: id,
+                          title: editedTitle,
+                          completion: { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let response):
+                self.isLoading = false
+                // 페이지 갱신
+                if let editedTodo : Todo = response.data,
+                   let editedTodoId : Int = editedTodo.id,
+                   let editedIndex = self.todos.firstIndex(where: { $0.id ?? 0 == editedTodoId }) {
+                    
+                    // 지금 수정한 녀석 아이디를 가지고 있는 인덱스 찾기
+                    // 그 녀석을 바꾸기
+                    self.todos[editedIndex] = editedTodo
+                }
+            case .failure(let failure):
+                print("failure: \(failure)")
+                self.isLoading = false
+                self.handleError(failure)
+            }
+        })
+  
+    }
+    
+    /// 할일 가져오기
+    /// - Parameter page: 페이지
+    func fetchTodos(page: Int = 1){
+        print(#fileID, #function, #line, "- <#comment#>")
+        
+        if isLoading {
+            print("로딩중입니다...")
+            return
+        }
+        
+        isLoading = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7, execute: {
+            // 서비스 로직
+            TodosAPI.fetchTodos(page: page, completion: { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case .success(let response):
+                    
+                    self.isLoading = false
+                    
+                    // 페이지 갱신
+                    if let fetchedTodos : [Todo] = response.data,
+                       let pageInfo : Meta = response.meta{
+                        if page == 1 {
+                            self.todos = fetchedTodos
+                        } else {
+                            self.todos.append(contentsOf: fetchedTodos)
+                        }
+                        self.pageInfo = pageInfo
+                    }
+                case .failure(let failure):
+                    print("failure: \(failure)")
+                    self.isLoading = false
+                }
+                self.notifyRefreshEnded?()
+                
+            })
         })
     }
     
     
-}
-
-
-//handleError
-extension TodosVM {
     /// API 에러처리
     /// - Parameter err: API 에러
     fileprivate func handleError(_ err: Error) {
         
-        if err is TodosAPI.ApiError {
-            let apiError = err as! TodosAPI.ApiError
-            
-            print("handleError : err : \(apiError.info)")
-            
-            switch apiError {
-            case .noContent:
-                print("컨텐츠 없음")
-            case .unauthorized:
-                print("인증안됨")
-            case .decodingError:
-                print("디코딩 에러입니다")
-            case .enoughLetter:
-                print("6자 이상 입력해주세요.")
-            default:
-                print("default")
-            }
+        guard let apiError = err as? TodosAPI.ApiError else {
+            print("모르는 에러입니다")
+            return
         }
+        print("handleError : err : \(apiError.info)")
         
+        switch apiError {
+        case .noContent:
+            print("컨텐츠 없음")
+            self.notifySearchDataNotFound?(true)
+        case .unauthorized:
+            print("인증안됨")
+        case .decodingError:
+            print("디코딩 에러입니당ㅇㅇ")
+        case .errResponseFromServer:
+            print("서버에서 온 에러입니다 : \(apiError.info)")
+            self.notifyErrorOccured?(apiError.info)
+        default:
+            print("default")
+        }
     }// handleError
+    
 }

@@ -76,12 +76,12 @@
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="addTodoButton" destination="vQr-eO-tiz" id="1ux-KW-DJB"/>
-                        <outlet property="currentPageLabel" destination="4XK-Jm-xPe" id="hki-aM-tzI"/>
-                        <outlet property="myTableView" destination="Qme-p7-cWA" id="STK-Cx-HQZ"/>
+                        <outlet property="deleteSelectedTodosBtn" destination="8YW-2d-kmw" id="KGK-E4-nXW"/>
+                        <outlet property="myTableView" destination="Qme-p7-cWA" id="VWB-sG-EvJ"/>
+                        <outlet property="pageInfoLabel" destination="4XK-Jm-xPe" id="76b-03-6TN"/>
                         <outlet property="searchBar" destination="6Ti-BS-Do9" id="WuT-er-NEU"/>
-                        <outlet property="selectedTodos" destination="ENL-0P-ASE" id="6ng-aG-VHu"/>
-                        <outlet property="selectedTodosDeleteButton" destination="8YW-2d-kmw" id="fK8-J5-Vjy"/>
+                        <outlet property="selectedTodosInfoLabel" destination="ENL-0P-ASE" id="f2r-fP-hDZ"/>
+                        <outlet property="showAddTodoAlertBtn" destination="vQr-eO-tiz" id="CPL-86-nEp"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

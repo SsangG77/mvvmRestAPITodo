@@ -8,380 +8,447 @@
 import Foundation
 import UIKit
 import SwiftUI
+import RxSwift
+import RxRelay
+import RxCocoa
 
-
-class MainVC: UIViewController {
-    
-    //MARK: - outlet
-    @IBOutlet weak var myTableView:                 UITableView!
-    @IBOutlet var      currentPageLabel:            UILabel!
-    @IBOutlet var      searchBar:                   UISearchBar!
-    @IBOutlet var      addTodoButton:               UIButton!
-    @IBOutlet var      selectedTodosDeleteButton:   UIButton!
-    @IBOutlet var      selectedTodos:               UILabel!
-    
-    
-    var searchTermInputWorkItem: DispatchWorkItem? = nil
-    
-    
-    //MARK: - view 모음
-    
-    //밑에서 데이터가 로딩될 때 나타나는 인디케이터
-    lazy var bottomIndicatorView:    UIActivityIndicatorView = getBottomIndicatorView()
-    
-    // 테이블뷰 위에서 당길때 나타나는 인디케이터
-    lazy var refreshControl:         UIRefreshControl        = getRefreshControl()
-    
-    //검색 결과가 없을때 나타날 뷰
-    lazy var searchDataNotFoundView: UIView                  = getSearchDataNotFoundView()
-    
-    //마지막 페이지 뷰
-    lazy var lastPageView:           UIView                  = getLastPageView()
-    
-    //할일 추가 알림창
-    lazy var addTodoAlert:           UIAlertController       = getAddTodoAlert()
-    
-    //알림 추가 에러 알림창
-    lazy var addTodoAlertError:      UIAlertController       = getAddTodoAlertError()
-    
-   
+class MainVC: UIViewController{
     
     
     
     
     
-    //MARK: - sangjin
-    //검색결과 변수
-    var notFoundSearchResult: Bool = false
+    @IBOutlet var myTableView: UITableView!
     
-    var todos: [Todo] = []
-    var todosVM = TodosVM()
+    @IBOutlet var pageInfoLabel: UILabel!
     
+    @IBOutlet var selectedTodosInfoLabel: UILabel!
+    
+    @IBOutlet var showAddTodoAlertBtn: UIButton!
+    
+    
+    @IBOutlet var deleteSelectedTodosBtn: UIButton!
+    
+    
+    var todos : [Todo] = []
+    
+    var disposeBag = DisposeBag()
+    
+    var todosVM: TodosVM_Rx = TodosVM_Rx()
+    
+    @IBOutlet weak var searchBar: UISearchBar!
+    
+    // 바텀 인디케이터뷰
+    lazy var bottomIndicator : UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.color = UIColor.systemBlue
+        indicator.startAnimating()
+        indicator.frame = CGRect(x: 0, y: 0, width: myTableView.bounds.width, height: 44)
+        return indicator
+    }()
+    
+    lazy var refreshControl : UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+//        refreshControl.transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
+        refreshControl.tintColor = .systemBlue.withAlphaComponent(0.5)
+//        refreshControl.attributedTitle = NSAttributedString(string: "당겨서 새로고침")
+        refreshControl.addTarget(self, action: #selector(self.handleRefresh(_:)), for: .valueChanged)
+        return refreshControl
+    }()
+    
+    // 검색결과를 찾지 못했다 뷰
+    lazy var searchDataNotFoundView: UIView = {
+        let view = UIView(frame: CGRect(x: 0, y: 0,
+                                        width: myTableView.bounds.width,
+                                        height: 300))
+        let label = UILabel()
+        label.text = "검색결과를 찾을 수 없습니다 🗑️"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+        return view
+    }()
+    
+    // 가져올 데이터가 없다 뷰
+    lazy var bottomNoMoreDataView: UIView = {
+        let view = UIView(frame: CGRect(x: 0, y: 0,
+                                        width: myTableView.bounds.width,
+                                        height: 60))
+        let label = UILabel()
+        label.text = "더 이상 가져올 데이터가 없습니다... 🐶"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+        return view
+    }()
+    
+    var searchTermInputWorkItem : DispatchWorkItem? = nil
+    
+    //MARK: - LifeCycles
     override func viewDidLoad() {
         super.viewDidLoad()
+        print(#fileID, #function, #line, "- ")
         self.view.backgroundColor = .systemYellow
         
+        // 버튼 액션 설정
+        self.showAddTodoAlertBtn.addTarget(self, action: #selector(showAddTodoAlert), for: .touchUpInside)
+//        
+//        self.deleteSelectedTodosBtn.addTarget(self, action: #selector(onDeleteSelectedTodosBtnClicked(_:)), for: .touchUpInside)
+//        
+        self.deleteSelectedTodosBtn
+            .rx.tap
+            .withUnretained(self)
+            .bind(onNext: { vc, _ in
+                vc.todosVM.deleteSeletedTodos()
+            }).disposed(by: disposeBag)
+        
+        
+        
+        
+        // ===
+        
+        // 테이블뷰 설정
         self.myTableView.register(TodoCell.uinib, forCellReuseIdentifier: TodoCell.reuseIdentifier)
-        self.myTableView.dataSource = self
-        self.myTableView.delegate = self
-        self.myTableView.refreshControl = self.refreshControl
+
+//        self.myTableView.delegate = self
+        
+        self.myTableView.refreshControl = refreshControl
+        self.myTableView.tableFooterView = bottomIndicator
+        
+        
+        //테이블뷰 바닥 이벤트 받기
+        myTableView
+            .rx.bottomReached
+            .bind(onNext: self.todosVM.fetchMore)
+            .disposed(by: disposeBag)
         
         
         
-        //서치바 설정
-        self.searchBar.searchTextField.addTarget(self, action: #selector(searchTermChanged(_:)), for: .editingChanged)
+        // ===
         
+        // 서치바 설정
+//        self.searchBar.searchTextField.addTarget(self, action: #selector(searchTermChanged(_:)), for: .editingChanged)
         
-        self.addTodoButton.addTarget(self, action: #selector(appearAddTodoAlert(_:)), for: .touchUpInside)
+        searchBar.searchTextField.rx.text.orEmpty
+            .bind(onNext: self.todosVM.searchTerm.accept(_:))
+            .disposed(by: disposeBag)
         
-        self.selectedTodosDeleteButton.addTarget(self, action: #selector(deleteTodosAction(_:)), for: .touchUpInside)
+        // ===
         
+        // 뷰모델 이벤트 받기 - 뷰 - 뷰모델 바인딩 - 묶기
+        self.todosVM
+            .todos
+            .bind(to: self.myTableView.rx.items(cellIdentifier: TodoCell.reuseIdentifier, cellType: TodoCell.self)) { [weak self] index, cellData, cell in
+                guard let self = self else { return }
+                
+                // 데이터 쎌에 넣어주기
+                cell.updateUI(cellData, self.todosVM.selectedTodoIds.value)
+
+                cell.onSelectedActionEvent = self.onSelectionItemAction(_:_:)
+
+                cell.onEditActionEvent = self.onEditItemAction
+
+                cell.onDeleteActionEvent = self.onDeleteItemAction(_:)
+                
+            }.disposed(by: disposeBag)
+   
         
+        self.todosVM
+            .currentPageInfo
+            .observe(on: MainScheduler.instance)
+            .bind(to: self.pageInfoLabel.rx.text)
         
+//        // 페이지 변경
+//        self.todosVM.notifyCurrentPageChanged = { [weak self] currentPage in
+//            guard let self = self else { return }
+//            DispatchQueue.main.async {
+//                self.pageInfoLabel.text = "페이지 : \(currentPage)"
+//            }
+//        }
         
-        self.todosVM.notifyIsLoading = { isLoading in
+        // 로딩중 여부
+        self.todosVM.notifyLoadingStateChanged = { [weak self] isLoading in
+            guard let self = self else { return }
             DispatchQueue.main.async {
-                if isLoading {
-                        self.myTableView.tableFooterView = self.bottomIndicatorView
-                } else {
-                    self.myTableView.tableFooterView = self.lastPageView
-                }
+                self.myTableView.tableFooterView = isLoading ? self.bottomIndicator : nil
             }
         }
         
-        
-        self.todosVM.notifyTodosChanged = { todos in
-            self.todos = todos
-            DispatchQueue.main.async {
-                self.myTableView.reloadData()
-            }
-        }
-        
-        self.todosVM.notifyCurrentPage = { page in
-            DispatchQueue.main.async {
-                self.currentPageLabel.text = "페이지: \(page)"
-            }
-        }
-        
-        self.todosVM.notifyRefresh = {
+        // 당겨서 새로고침 완료
+        self.todosVM.notifyRefreshEnded = { [weak self] in
+            guard let self = self else { return }
             DispatchQueue.main.async {
                 self.refreshControl.endRefreshing()
             }
         }
         
-        //MARK: - sangjin
-        self.todosVM.notifyNotFoundSearchResult = { [weak self] result in
-            //내가 한거
-//            self.notFoundSearchResult = result
-            
-            
-            //강의
+        // 검색결과 없음 여부
+        self.todosVM.notifySearchDataNotFound = { [weak self] notFound in
             guard let self = self else { return }
+            print(#fileID, #function, #line, "- notFound: \(notFound)")
             DispatchQueue.main.async {
-                self.myTableView.backgroundView = result ? self.searchDataNotFoundView : nil
+                self.myTableView.backgroundView = notFound ? self.searchDataNotFoundView : nil
             }
         }
         
+        self.todosVM
+            .notifyHasNextPage
+            .observe(on: MainScheduler.instance)
+            .map { !$0 ? self.bottomNoMoreDataView : nil }
+            .bind(to: self.myTableView.rx.tableFooterView)
+            .disposed(by: disposeBag)
         
-        //MARK: - sangjin 서버로부터 에러가 응답되었을때 실행할 클로저
-        self.todosVM.addTodoError = {
-            DispatchQueue.main.async {
-                self.present(self.addTodoAlertError, animated: true)
-            }
-        }
+        // 다음페이지 존재 여부
+//        self.todosVM.notifyHasNextPage = { [weak self] hasNext in
+//            guard let self = self else { return }
+//            print(#fileID, #function, #line, "- hasNext: \(hasNext)")
+//            DispatchQueue.main.async {
+//                self.myTableView.tableFooterView = !hasNext ? self.bottomNoMoreDataView : nil
+//            }
+//        }
         
-        self.todosVM.addTodoSuccess = {
+        // 할일 추가완료
+        self.todosVM.notifyTodoAdded = { [weak self] in
+            guard let self = self else { return }
+            print(#fileID, #function, #line, "")
             DispatchQueue.main.async {
                 self.myTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .top, animated: true)
             }
         }
         
-        self.todosVM.notifySelectedTodosChanged = { [weak self] selectedTodos in
+        // 에러 발생시
+        self.todosVM.notifyErrorOccured = { [weak self] errMsg in
             guard let self = self else { return }
+            print(#fileID, #function, #line, "")
             DispatchQueue.main.async {
-                
-                
-                let selectedTodosString = selectedTodos.map{ "\($0)" }.joined(separator: ", ")
-                self.selectedTodos.text = "선택된 할일들: [\(selectedTodosString)]"
+                self.showErrAlert(errMsg: errMsg)
             }
         }
         
         
+        self.todosVM.selectedTodoIds
+            .map {
+                $0.map { "\($0)"}.joined(separator: ", ")
+            }
+            .observe(on: MainScheduler.instance)
+            .map { "선택된 할일들: [\($0)]"}
+            .bind(to: self.selectedTodosInfoLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        
+//        self.todosVM.notifySelectedTodoIdsChanged = { [weak self] selectedTodoIds in
+//            guard let self = self else { return }
+//            print(#fileID, #function, #line, "")
+//            DispatchQueue.main.async {
+//                
+//                let idsInfoString = selectedTodoIds.map{ "\($0)" }.joined(separator: ", ")
+//                
+//                self.selectedTodosInfoLabel.text = "선택된 할일들 : [" + idsInfoString + "]"
+//            }
+//            
+//        }
+        
+        // ===
         
     }// viewDidLoad
+    
+    
 }
 
-
-
-//MARK: - View 반환 함수들
+//MARK: - 얼럿
 extension MainVC {
     
-//인디케이터
-    // 위에서 당기면 나타나는 인디케이터
-    fileprivate func getRefreshControl() -> UIRefreshControl {
-        let refresh = UIRefreshControl()
-         refresh.attributedTitle = NSAttributedString(string: "당겨버리기...")
-         refresh.addTarget(self, action: #selector(self.refresh(_:)), for: .valueChanged)
-         return refresh
-    } // getRefreshControl
-    
- 
-    // 밑에 데이터가 로딩될 때 나타나는 인디케이터
-    fileprivate func getBottomIndicatorView() -> UIActivityIndicatorView {
-        let indicator = UIActivityIndicatorView(style: .medium)
-        indicator.startAnimating()
-        indicator.frame(forAlignmentRect: CGRect(x: 0, y: 0, width: self.myTableView.bounds.width, height: 100))
-        return indicator
-    } // getBottomIndicatorView
-    
-    
-    
-//알림창
-    //알림 추가 에러 알림창
-    fileprivate func getAddTodoAlertError() -> UIAlertController {
-        let alert = UIAlertController(title: "할일 추가 오류", message: "할일이 추가되지 않았습니다.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .cancel))
-        
-        return alert
-    } // getAddTodoAlertError
-    
-    //할일 추가 알림창
-    fileprivate func getAddTodoAlert() -> UIAlertController {
-        let alert = UIAlertController(title: "할일 추가", message: "할일을 입력해주세요.", preferredStyle: .alert)
-        alert.addTextField { (textField) in
-            textField.placeholder = "할일 추가"
-        }
-        alert.addAction(UIAlertAction(title: "닫기", style: .destructive))
-        alert.addAction(UIAlertAction(title: "확인", style: .default, handler: { (_) in
-            if let txt = alert.textFields?.first?.text {
-                self.todosVM.todoText = txt
-            }
-        }))
-        return alert
-    } // getAddTodoAlert
-    
-    
-    //할일 삭제 알림창
-    fileprivate func getDeleteTodoAlert(_ id: Int) -> UIAlertController {
-        let alert = UIAlertController(title: "할일 삭제", message: "'\(id)' 를 삭제하시겠습니까?", preferredStyle: .alert)
-        
-        let closeAction = UIAlertAction(title: "닫기", style: .cancel)
-        let deleteAction = UIAlertAction(title: "삭제", style: .destructive, handler: {_ in 
-            self.todosVM.deleteTodo(id)
+    /// 할일 삭제 얼럿 띄우기
+    @objc fileprivate func showDeleteTodoAlert(_ id: Int){
+        //1. Create the alert controller.
+        let alert = UIAlertController(title: "할일 삭제", message: "id:\(id) 할일을 삭제하시겠습니까?", preferredStyle: .alert)
+
+        let submitAction = UIAlertAction(title: "확인", style: .default, handler: { _ in
+            // 뷰모델 -> 해당 할일 삭제
+            self.todosVM.deleteATodo(id)
         })
         
-        alert.addAction(closeAction)
-        alert.addAction(deleteAction)
+        let closeAction = UIAlertAction(title: "닫기", style: .cancel)
         
-        return alert
+        alert.addAction(submitAction)
+        
+        alert.addAction(closeAction)
+        
+        // 4. Present the alert.
+        self.present(alert, animated: true, completion: nil)
     }
     
-    
-    //할일 편집 알림창
-    fileprivate func getEditTodoAlert(_ id: Int, _ beforeEditText: String) -> UIAlertController {
-        let alert = UIAlertController(title: "할일 편집", message: "내용을 입력해주세요.", preferredStyle: .alert)
+    /// 에러 얼럿 띄우기
+    @objc fileprivate func showErrAlert(errMsg: String){
+        //1. Create the alert controller.
+        let alert = UIAlertController(title: "안내", message: errMsg, preferredStyle: .alert)
+
+        let closeAction = UIAlertAction(title: "닫기", style: .cancel)
         
-        var afterEditText = ""
+        alert.addAction(closeAction)
+        
+        // 4. Present the alert.
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    /// 할일 수정 얼럿 띄우기
+    @objc fileprivate func showEditTodoAlert(_ id: Int, _ existingTitle: String){
+        //1. Create the alert controller.
+        let alert = UIAlertController(title: "수정", message: "id: \(id)", preferredStyle: .alert)
+
+        //2. Add the text field. You can configure it however you need.
         alert.addTextField { (textField) in
-            textField.placeholder = "할일 추가"
-            textField.text = beforeEditText /*beforeText*/
+            textField.placeholder = "예) 빡코딩하기"
+            textField.text = existingTitle
         }
-        alert.addAction(UIAlertAction(title: "닫기", style: .destructive))
-        alert.addAction(UIAlertAction(title: "확인", style: .default, handler: { (_) in
-            if let txt = alert.textFields?.last?.text {
-                self.todosVM.editTodo(id, txt)
+
+        // 3. Grab the value from the text field, and print it when the user clicks OK.
+        let confirmAction = UIAlertAction(title: "확인", style: .default, handler: { [weak alert] (_) in
+            if let userInput = alert?.textFields?[0].text {
+                print("userInput: \(userInput)")
+                self.todosVM.editATodo(id, userInput)
             }
-        }))
-        return alert
-    } // getAddTodoAlert
-    
-    
-    
-//뷰
-    //마지막 페이지 뷰
-    fileprivate func getLastPageView() -> UIView {
-        let lastPageView = UIView(frame: CGRect(x: 0, y: 0, width: myTableView.bounds.width, height: 100))
+        })
         
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        lastPageView.addSubview(label)
-        label.text = "더 이상 가져올 데이터가 없습니다."
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: lastPageView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: lastPageView.centerYAnchor)
-        ])
-        return lastPageView
-    } // getLastPageView
-    
-    
-    //검색 결과가 없을때 나타날 뷰
-    fileprivate func getSearchDataNotFoundView() -> UIView {
-        let notDataFoundView = UIView(frame: CGRect(x: 0, y: 0, width: myTableView.bounds.width, height: 300))
+        let closeAction = UIAlertAction(title: "닫기", style: .destructive)
         
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        notDataFoundView.addSubview(label)
-        label.text = "검색 결과를 찾을 수 없습니다.🗑️"
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: notDataFoundView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: notDataFoundView.centerYAnchor)
-        ])
-        return notDataFoundView
-    } // getSearchDataNotFoundView
+        alert.addAction(closeAction)
+        alert.addAction(confirmAction)
+
+        // 4. Present the alert.
+        self.present(alert, animated: true, completion: nil)
+    }
     
- 
-    
-    
-    
-    
-    
+    /// 할일 추가 얼럿 띄우기
+    @objc fileprivate func showAddTodoAlert(){
+        //1. Create the alert controller.
+        let alert = UIAlertController(title: "추가", message: "할일을 입력해주세요", preferredStyle: .alert)
+
+        //2. Add the text field. You can configure it however you need.
+        alert.addTextField { (textField) in
+            textField.placeholder = "예) 빡코딩하기"
+        }
+
+        // 3. Grab the value from the text field, and print it when the user clicks OK.
+        let confirmAction = UIAlertAction(title: "확인", style: .default, handler: { [weak alert] (_) in
+            if let userInput = alert?.textFields?[0].text {
+                print("userInput: \(userInput)")
+                self.todosVM.addATodo(userInput)
+            }
+        })
+        
+        let closeAction = UIAlertAction(title: "닫기", style: .destructive)
+        
+        alert.addAction(closeAction)
+        alert.addAction(confirmAction)
+
+        // 4. Present the alert.
+        self.present(alert, animated: true, completion: nil)
+    }
 }
 
-
-//MARK: - extention 액션 설정들
+//MARK: - 액션들
 extension MainVC {
-    @objc fileprivate func refresh(_ sender:UIRefreshControl) {
+    
+    @objc fileprivate func onDeleteSelectedTodosBtnClicked(_ sender: UIButton){
+        print(#fileID, #function, #line, "- ")
+        self.todosVM.deleteSeletedTodos()
+    }
+    
+    /// 검색어가 입력되었다
+    /// - Parameter sender:
+//    @objc fileprivate func searchTermChanged(_ sender: UITextField){
+//        print(#fileID, #function, #line, "- sender: \(String(describing: sender.text))")
+//        
+//        // 검색어가 입력되면 기존 작업 취소
+//        searchTermInputWorkItem?.cancel()
+//        
+//        let dispatchWorkItem = DispatchWorkItem(block: {
+//            // 백그라운드 - 사용자 입력 userInteractive
+//            DispatchQueue.global(qos: .userInteractive).async {
+//                DispatchQueue.main.async { [weak self] in
+//                    guard let userInput = sender.text,
+//                          let self = self else { return }
+//                    
+//                    print(#fileID, #function, #line, "- 검색 API 호출하기 userInput: \(userInput)")
+//                    self.todosVM.todos.accept([])
+//                    // 뷰모델 검색어 갱신
+//                    self.todosVM.searchTerm = userInput
+//                }
+//            }
+//        })
+//        
+//        // 기존작업을 나중에 취소하기 위해 메모리 주소 일치 시켜줌
+//        self.searchTermInputWorkItem = dispatchWorkItem
+//        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7, execute: dispatchWorkItem)
+//    }
+    
+    /// 리프레시 처리
+    /// - Parameter sender:
+    @objc fileprivate func handleRefresh(_ sender: UIRefreshControl) {
+        print(#fileID, #function, #line, "- ")
+        
+        // 뷰모델한테 시키기
         self.todosVM.fetchRefresh()
     }
     
     
-    //검색창에 입력할때마다 호출됨.
-    @objc func searchTermChanged(_ sender: UITextField) {
-        
-        //검색어를 입력할때마다 기존 작업을 취소
-        searchTermInputWorkItem?.cancel()
-        
-        let dispatchWorkItem = DispatchWorkItem(block: {
-            DispatchQueue.global(qos: .userInteractive).async {
-                DispatchQueue.main.async { [weak self] in
-                    guard let userInput = sender.text,
-                          let self = self
-                    else { return }
-                    self.todosVM.searchTerm = userInput
-                }
-            }
-        })
-        
-        //작업 재실행
-        self.searchTermInputWorkItem = dispatchWorkItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7, execute: dispatchWorkItem)
-    }// - searchTermChanged
     
-    
-    // 할일 추가 알림창 띄우기
-    @objc func appearAddTodoAlert(_ sender:UIButton) {
-        self.present(addTodoAlert, animated: true)
+    /// 쎌의 삭제 버튼 클릭시
+    /// - Parameter id: <#id description#>
+    fileprivate func onDeleteItemAction(_ id: Int) {
+        print(#fileID, #function, #line, "- id: \(id)")
+        self.showDeleteTodoAlert(id)
     }
     
-    @objc func deleteTodosAction(_ sender: UIButton) {
-        self.todosVM.deleteTodos()
+    /// 쎌의 수정 버튼 클릭시
+    /// - Parameters:
+    ///   - id: 아이디
+    ///   - editedTitle: 변경된 타이틀
+    fileprivate func onEditItemAction(_ id: Int, _ editedTitle: String) {
+        print(#fileID, #function, #line, "- id: \(id), editedTitle: \(editedTitle)")
+        self.showEditTodoAlert(id, editedTitle)
     }
     
-    
-    
+    /// 쎌의 아이템 선택 이벤트
+    /// - Parameters:
+    ///   - id: 아이디
+    ///   - isOn: 선택여부
+    fileprivate func onSelectionItemAction(_ id: Int, _ isOn: Bool) {
+        print(#fileID, #function, #line, "- id: \(id), isOn: \(isOn)")
+        #warning("TODO : - 선택된 요소 변경하라고 뷰모델 한테 알리기")
+        self.todosVM.handleTodoSelection(id, isOn: isOn)
+    }
 }
 
-
-//MARK: - extention TableView 스크롤 설정
-extension MainVC: UITableViewDelegate {
+extension MainVC : UITableViewDelegate {
     
+    //
+    /// - Parameter scrollView:
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let height = scrollView.contentSize.height
+//        print(#fileID, #function, #line, "- ")
+        let height = scrollView.frame.size.height
         let contentYOffset = scrollView.contentOffset.y
-        let distance = scrollView.contentSize.height - contentYOffset
-        
-        if distance < height {
+        let distanceFromBottom = scrollView.contentSize.height - contentYOffset
+
+        if distanceFromBottom - 200 < height {
+            print("바닥이다")
             self.todosVM.fetchMore()
-            
         }
     }
+    
     
 }
 
-
-
-extension MainVC : UITableViewDataSource {
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return todos.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: TodoCell.reuseIdentifier, for: indexPath) as? TodoCell else {
-            return UITableViewCell()
-        }
-        
-        let cellData = self.todos[indexPath.row]
-        
-        cell.updateUI(cellData, self.todosVM.selectedTodosId)
-        
-        cell.deletedActionEvent = {
-            let alert = self.getDeleteTodoAlert($0)
-            self.present(alert, animated: true)
-        }
-        
-        cell.editActionEvent = { id, title in
-            let alert = self.getEditTodoAlert(id, title)
-            self.present(alert, animated: true)
-        }
-        
-        //MARK: - sangjin delete todo
-//           cell.parentVC = self
-        
-        
-        cell.selectedActionEvent = { id, isOn in
-            self.todosVM.handleTodoSelection(id, isOn)
-        }
-        
-        
-        
-        
-        return cell
-    }
-  
-}
-
+// 1. 갯수
+// 2. 어떤 쎌
 
 
 extension MainVC {
@@ -406,15 +473,3 @@ extension MainVC {
 
 
 
-//extension MainVC: UITableViewDelegate {
-//    func tableView(
-//        _ tableView: UITableView,
-//        willDisplay cell: UITableViewCell,
-//        forRowAt indexPath: IndexPath
-//    ) {
-//        let isLastCursor = indexPath.row == todos.count - 1
-//        guard isLastCursor else { return }
-//        print("load more")
-//        tableView.reloadData()
-//    }
-//}
